@@ -1,0 +1,3 @@
+User-agent: *
+Allow: /
+Sitemap: https://jmdev.pl/sitemap.xml

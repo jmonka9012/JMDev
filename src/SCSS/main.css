@@ -1,0 +1,205 @@
+@font-face {
+  font-family: Determination;
+  src: url("../assets/fonts/determination.ttf");
+  font-weight: 400;
+}
+@font-face {
+  font-family: Press Start;
+  src: url("../assets/fonts/PressStart2P.ttf");
+  font-weight: 400;
+}
+:root {
+  --main-color: rgb(50,255,50, 255);
+}
+
+.p-0 {
+  padding: 0 !important;
+}
+
+.mb-0 {
+  margin-bottom: 0 !important;
+}
+
+.bg-blur {
+  backdrop-filter: blur(3px);
+}
+
+.js-hidden {
+  opacity: 0;
+  visibility: hidden;
+}
+
+body {
+  color: white;
+  margin: 0;
+  background-size: 155%;
+  background-position: 49% 42%;
+  background-color: black;
+  font-family: "Determination";
+  color: #fff;
+}
+
+*::selection {
+  background-color: rgb(50, 255, 50);
+}
+
+.container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  position: relative;
+  padding: 0 20px;
+}
+
+h1, h2, h3, h4 {
+  line-height: 1.2;
+}
+
+h1, .h1 {
+  font-size: 80px;
+}
+@media (max-width: 1200px) {
+  h1, .h1 {
+    font-size: 56px;
+  }
+}
+
+h2, .h2 {
+  font-size: 60px;
+}
+@media (max-width: calc(1024px - 0.02px)) {
+  h2, .h2 {
+    font-size: 28px;
+  }
+}
+
+h3, .h3 {
+  font-size: 36px;
+}
+@media (max-width: calc(1024px - 0.02px)) {
+  h3, .h3 {
+    font-size: 24px;
+  }
+}
+
+h4, .h4 {
+  font-size: 24px;
+}
+
+ul li {
+  position: relative;
+  padding-left: 24px;
+  font-size: 20px;
+}
+ul li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  background-color: rgb(50, 255, 50);
+  top: 12px;
+  width: 8px;
+  height: 8px;
+}
+.ul--big ul li {
+  padding-left: 30px;
+  font-size: 32px;
+}
+.ul--big ul li::before {
+  width: 12px;
+  height: 12px;
+  border-radius: 2px;
+  top: 16px;
+}
+@media (max-width: calc(1024px - 0.02px)) {
+  .ul--big ul li {
+    font-size: 20px;
+  }
+  .ul--big ul li::before {
+    top: 10px;
+  }
+  .ul--big ul li:not(:last-child) {
+    margin-bottom: 22px;
+  }
+}
+
+body, body * {
+  cursor: none !important;
+}
+
+.section-fvh {
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+}
+
+.container {
+  padding-left: 40px;
+  padding-right: 40px;
+}
+@media (max-width: calc(1024px - 0.02px)) {
+  .container {
+    padding-left: 26px;
+    padding-right: 26px;
+  }
+}
+
+.text-lg {
+  font-size: 18px;
+  line-height: 1.4;
+}
+
+@keyframes fade-out-sequence {
+  0% {
+    background-color: white;
+    color: black;
+  }
+  20% {
+    background-color: #fff;
+    color: #fff;
+  }
+  50% {
+    background-color: var(--main-color);
+  }
+  75% {
+    background-color: rgba(0, 90, 0, 0.8);
+  }
+  100% {
+    background-color: rgba(0, 90, 0, 0);
+  }
+}
+@keyframes bg-glitch-in {
+  0% {
+    background-color: rgba(0, 90, 0, 0);
+  }
+  25% {
+    background-color: rgba(0, 90, 0, 0.8);
+  }
+  50% {
+    background-color: var(--main-color);
+  }
+  80% {
+    background-color: #fff;
+  }
+  100% {
+    background-color: #fff;
+  }
+}
+@keyframes text-glitch-in {
+  0% {
+    color: inherit;
+  }
+  25% {
+    color: #fff;
+  }
+  50% {
+    color: #fff;
+  }
+  80% {
+    color: #000;
+  }
+  100% {
+    color: #000;
+  }
+}
+
+/*# sourceMappingURL=main.css.map */

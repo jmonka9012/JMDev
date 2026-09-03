@@ -1,0 +1,97 @@
+body {
+  color: white;
+  margin: 0;
+  background-size: 155%;
+  background-position: 49% 42%;
+  background-color: black;
+  font-family: "Determination";
+  color: #fff;
+}
+
+*::selection {
+  background-color: $primary-selection;
+}
+
+.container {
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+  position: relative;
+  padding: 0 20px;
+}
+
+h1, h2, h3, h4 {
+  line-height: 1.2;
+}
+
+h1, .h1 {
+  font-size: 80px;
+
+  @media (max-width: 1200px) {
+    font-size: 56px;
+  }
+}
+
+h2, .h2 {
+  font-size: 60px;
+
+  @include media-breakpoint-down(lg) {
+    font-size: 28px;
+  }
+}
+
+h3, .h3 {
+  font-size: 36px;
+
+  @include media-breakpoint-down(lg) {
+    font-size: 24px;
+  }
+}
+
+h4, .h4 {
+  font-size: 24px;
+}
+
+ul {
+  li {
+    position: relative;
+    padding-left: 24px;
+    font-size: 20px;
+
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      background-color: $main-color;
+      top: 12px;
+      width: 8px;
+      height: 8px;
+    }
+  }
+
+  .ul--big & {
+    li {
+      padding-left: 30px;
+      font-size: 32px;
+
+      &::before {
+        width: 12px;
+        height: 12px;
+        border-radius: 2px;
+        top: 16px;
+      }
+
+      @include media-breakpoint-down(lg) {
+        font-size: 20px;
+
+        &::before {
+          top: 10px;
+        }
+
+        &:not(:last-child) {
+          margin-bottom: 22px;
+        }
+      }
+    }
+  }
+}
