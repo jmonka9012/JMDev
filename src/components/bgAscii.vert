@@ -1,4 +1,3 @@
-// --- bgAscii.vert ---
 precision mediump float;
 attribute vec3 aPosition;
 attribute vec2 aTexCoord;

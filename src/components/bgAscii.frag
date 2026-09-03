@@ -1,6 +1,6 @@
 precision mediump float;
 
-varying vec2 vTexCoord; // [x,y] piksela
+varying vec2 vTexCoord; // pixel [x,y]
 
 uniform sampler2D uBgData;
 uniform vec2 uBgSize;
@@ -18,7 +18,7 @@ uniform vec2 uPastedCharSize;
 uniform vec2 uScreenSize;
 uniform float uLineColorsNum;
 
-// --- FUNKCJE POMOCNICZE ---
+// --- HELPER FUNCTIONS ---
 float random(vec2 p) {
     vec3 p3  = fract(vec3(p.xyx) * 0.1031);
     p3 += dot(p3, p3.yzx + 33.33);
@@ -66,7 +66,7 @@ float snoise(vec3 v) {
     return 42.0 * dot(m * m, vec4(dot(p0, x0), dot(p1, x1), dot(p2, x2), dot(p3, x3)));
 }
 
-// --- GŁÓWNY PROGRAM ---
+// --- MAIN PROGRAM ---
 void main() {
     vec2 gridUV = vTexCoord * uBgSize;
     vec2 cellCoords = floor(gridUV);
@@ -80,27 +80,25 @@ void main() {
     float normalNoise = clamp((snoise(vec3(cellCoords * 0.1, uTime * 0.5)) + 1.0) * 0.5, 0.0, 0.999);
     float fastNoise = clamp((snoise(vec3(cellCoords * 0.1, uTime * 2.5)) + 1.0) * 0.5, 0.0, 0.999);
 
-    // Stan końcowy piksela
+    // Final pixel state
     float outChar = 0.0;
-    float outColor = 255.0; // Domyślnie brak koloru
+    float outColor = 255.0; // Default to no color
     bool isVisible = false;
 
-    // --- 1. WARSTWA TŁA (HOVER) ---
+    // --- 1. BACKGROUND LAYER (HOVER) ---
     float dist = distance(pixelCoords, uMousePixel);
-//    bool inHoverGlow = (dist < 120.0);
     bool inHoverGlow = (dist < 115.0 && dist >= 10.0);
     bool inHoverHole = (dist < 10.0);
 
     if (inHoverGlow) {
         outColor = floor(((dist - 10.0) / 105.0) * uLineColorsNum);
-//        outColor = 127.0;
         outChar = floor(fastNoise * uCharCount);
         isVisible = true;
     }
 
-    // --- 2. WARSTWA ELEMENTÓW ---
+    // --- 2. ELEMENTS LAYER ---
     if (draw == 255.0) {
-        // ORB (Nadpisuje całkowicie kolor hovera)
+        // ORB (Overrides hover color completely)
         float baseChar = floor(data.r * 255.0 + 0.5);
         outColor = floor(data.g * 255.0 + 0.5);
         isVisible = true;
@@ -115,14 +113,14 @@ void main() {
         outChar = floor(texture2D(uSubArray, subUV).r * 255.0 + 0.5);
     }
     else if (draw == 120.0) {
-        // MATRIX (Przebija się jasnością przez hover)
+        // MATRIX (Shines through hover with brightness)
         float lineColor = floor(data.g * 255.0 + 0.5);
         outChar = floor((inHoverGlow ? fastNoise : normalNoise) * uCharCount);
-        outColor = min(lineColor, outColor); // Mniejszy index = jaśniejszy kolor
+        outColor = min(lineColor, outColor); // Lower index = brighter color
         isVisible = true;
     }
     else if (draw == 150.0) {
-        // RAMKI UI (Nadpisuje całkowicie)
+        // UI FRAMES (Overrides completely)
         float initColor = floor(data.g * 255.0 + 0.5);
         float velRatio = clamp(uVelocity / 15.0, 0.0, 1.0);
 
@@ -143,7 +141,7 @@ void main() {
                 float starColor = floor((1.0 - brightness) * uLineColorsNum);
                 if (starCharSeed > 0.99) {
                     outChar = 37.0;
-                } else if (inHoverGlow != true) {
+                } else if (!inHoverGlow) {
                     outChar = 65.0;
                 }
                 outColor = min(starColor, outColor);
@@ -152,24 +150,16 @@ void main() {
         }
     }
 
-/**    if (draw == 0.0) {
-        outChar = 0.0;  // Znak o indeksie 1 w Twoim atlasie
-        outColor = 0.0; // Indeks 0.0 to pierwszy kolor w tablicy (czyli {r:255, g:255, b:255})
-        isVisible = true;
-    }*/
-
-    // --- 3. MASKOWANIE ---
-    // Czarna dziura ukrywa wszystko pod kursorem.
-    // Jeśli chcesz by gwiazdy były w niej widoczne, zamień na: if (inHoverHole && draw != 160.0)
+    // --- 3. MASKING ---
+    // Black hole hides everything under the cursor
     if (inHoverHole && draw != 160.0) {
         isVisible = false;
     }
 
-    // --- 4. RENDER FINALNY ---
+    // --- 4. FINAL RENDER ---
     if (!isVisible) {
         discard;
     }
-
 
     vec2 atlasOffset = vec2(outChar * uCharUVSize.x, outColor * uCharUVSize.y);
     vec2 finalUV = atlasOffset + (localUV * uCharUVSize);
