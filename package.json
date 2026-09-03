@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "node scripts/fetch-wp-data.js && vite-ssg build",
+    "build": "prettier --write \"src/views/**/*.{js,vue}\" \"src/components/**/*.{js,vue}\" \"src/utils/**/*.{js,vue}\" && node scripts/fetch-wp-data.js && vite-ssg build",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -24,6 +24,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^6.0.5",
+    "prettier": "^3.5.3",
     "sass": "^1.99.0",
     "vite": "^8.0.4",
     "vite-ssg": "^28.3.0",
