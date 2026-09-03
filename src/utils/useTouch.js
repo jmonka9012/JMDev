@@ -1,4 +1,4 @@
-import { ref } from "vue";
+import { onUnmounted, ref } from "vue";
 
 export function useTouch() {
   const x = ref(-30000);
@@ -20,6 +20,12 @@ export function useTouch() {
     window.addEventListener("touchmove", update, { passive: true });
     window.addEventListener("touchend", update, { passive: true });
   }
+
+  onUnmounted(() => {
+    window.removeEventListener("touchstart", update);
+    window.removeEventListener("touchmove", update);
+    window.removeEventListener("touchend", update);
+  });
 
   return { x, y };
 }

@@ -1,5 +1,11 @@
 <script setup>
+import { provide } from "vue";
 import CustomCursor from "./components/Partials/CustomCursor.vue";
+import { useMouse } from "./utils/useMouse.js";
+import { useTouch } from "./utils/useTouch.js";
+
+provide("mousePos", useMouse());
+provide("touchPos", useTouch());
 </script>
 
 <template>

@@ -1,5 +1,4 @@
-// src/utils/useMouse.js
-import { ref } from "vue";
+import { onUnmounted, ref } from "vue";
 
 export function useMouse() {
   const x = ref(0);
@@ -13,6 +12,10 @@ export function useMouse() {
   if (typeof window !== "undefined") {
     window.addEventListener("mousemove", update);
   }
+
+  onUnmounted(() => {
+    window.removeEventListener("mousemove", update);
+  });
 
   return { x, y };
 }

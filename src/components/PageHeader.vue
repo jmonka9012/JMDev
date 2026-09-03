@@ -1,12 +1,14 @@
 <script setup>
 import { registeredElements } from "../utils/useRegistry.js";
-import { inject, onMounted, ref, watch, nextTick } from "vue";
+import { inject, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { fadeIn } from "../utils/animations.js";
 
 const lenis = inject("lenis");
 const menuItems = ref([]);
 const activeId = ref(null);
 const hasAnimated = ref(false);
+let observer;
+let observeSectionsTimeout;
 
 const props = defineProps({
   lang: {
@@ -72,14 +74,19 @@ onMounted(() => {
     });
   };
 
-  const observer = new IntersectionObserver(observerCallback, observerOptions);
+  observer = new IntersectionObserver(observerCallback, observerOptions);
 
-  setTimeout(() => {
+  observeSectionsTimeout = setTimeout(() => {
     registeredElements.value.forEach((item) => {
       const section = document.getElementById(item.id);
       if (section) observer.observe(section);
     });
   }, 300);
+});
+
+onUnmounted(() => {
+  clearTimeout(observeSectionsTimeout);
+  observer?.disconnect();
 });
 
 const langSwapText = props.lang === "pl" ? "EN" : "PL";
