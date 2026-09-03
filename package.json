@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "NODE_TLS_REJECT_UNAUTHORIZED=0 vite-ssg build",
+    "build": "node scripts/fetch-wp-data.js && vite-ssg build",
     "preview": "vite preview"
   },
   "dependencies": {
