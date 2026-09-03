@@ -2,7 +2,7 @@
 import { ref, onMounted, onUnmounted } from "vue";
 import { useElementsRegistry } from "../utils/useRegistry.js";
 const { registerElement, unregisterElement } = useElementsRegistry();
-import { Swiper } from "swiper/vue";
+import { Swiper, SwiperSlide } from "swiper/vue";
 import {
   Pagination,
   Navigation,
