@@ -4,7 +4,6 @@ import ScrambleText from "./Partials/ScrambleText.vue";
 import { fadeIn } from "../utils/animations.js";
 import { useElementsRegistry } from "../utils/useRegistry.js";
 import { onMounted, onUnmounted, ref } from "vue";
-import gsap from "gsap";
 const { registerElement, unregisterElement } = useElementsRegistry();
 
 const myId = "experience";

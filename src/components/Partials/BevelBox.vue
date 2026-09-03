@@ -1,7 +1,6 @@
 <script setup>
 import { ref, onMounted, onUnmounted, inject, computed } from "vue";
 import { useVisibility } from "../../utils/useVisibility.js";
-import { throttle } from "../../utils/throttle.js";
 import { gsap } from "gsap";
 
 const lenis = inject("lenis");

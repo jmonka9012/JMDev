@@ -11,9 +11,8 @@ import Footer from "../components/Footer.vue";
 import { fadeIn } from "../utils/animations.js";
 
 import { getPageData } from "../utils/getData.js";
-import { ref, onMounted, nextTick, onUnmounted } from "vue";
+import { ref, onMounted, onUnmounted } from "vue";
 import { refreshState } from "../utils/refreshState.js";
-import { registeredElements } from "../utils/useRegistry.js";
 
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";

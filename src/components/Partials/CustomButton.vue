@@ -1,6 +1,5 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from "vue";
-import BevelBox from "./BevelBox.vue";
 import { useScramble } from "../../utils/useScramble.js";
 
 const props = defineProps({
