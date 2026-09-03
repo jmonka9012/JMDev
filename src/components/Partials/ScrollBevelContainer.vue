@@ -2,22 +2,25 @@
 import CursorBevelBox from "./CursorBevelBox.vue";
 import { ref, onMounted, onUnmounted } from "vue";
 
-const scrollContainer = ref(null);
-const scrollRatio = ref(0);
-let ticking = false;
-
 const props = defineProps({
   blur: {
     type: Boolean,
-    required: false,
     default: true,
   },
   tracked: {
     type: Boolean,
-    required: false,
     default: false,
   },
 });
+
+const scrollContainer = ref(null);
+const scrollRatio = ref(0);
+const isMobile = ref(false);
+const isReady = ref(false);
+
+let ticking = false;
+let isTrackingScroll = false;
+let mobileMediaQuery;
 
 const updateRatio = () => {
   if (!scrollContainer.value) {
@@ -27,15 +30,11 @@ const updateRatio = () => {
 
   const rect = scrollContainer.value.getBoundingClientRect();
   const windowHeight = window.innerHeight;
-
   const viewportCenter = windowHeight / 2;
-
   const containerCenter = rect.top + rect.height / 2;
-
   const distance = Math.abs(viewportCenter - containerCenter);
 
   scrollRatio.value = (distance / windowHeight) * 1.5 * 100;
-
   ticking = false;
 };
 
@@ -46,32 +45,78 @@ const onScroll = () => {
   }
 };
 
-onMounted(() => {
+const startScrollTracking = () => {
+  if (isTrackingScroll) return;
   window.addEventListener("scroll", onScroll, { passive: true });
   window.addEventListener("resize", onScroll, { passive: true });
-
+  isTrackingScroll = true;
   updateRatio();
+};
+
+const stopScrollTracking = () => {
+  if (!isTrackingScroll) return;
+  window.removeEventListener("scroll", onScroll);
+  window.removeEventListener("resize", onScroll);
+  isTrackingScroll = false;
+  ticking = false;
+};
+
+const handleViewportChange = (e) => {
+  isMobile.value = e.matches;
+
+  if (e.matches) {
+    stopScrollTracking();
+  } else {
+    startScrollTracking();
+  }
+};
+
+onMounted(() => {
+  mobileMediaQuery = window.matchMedia("(max-width: 991.98px)");
+  handleViewportChange(mobileMediaQuery);
+
+  if (mobileMediaQuery.addEventListener) {
+    mobileMediaQuery.addEventListener("change", handleViewportChange);
+  } else {
+    mobileMediaQuery.addListener(handleViewportChange);
+  }
+
+  isReady.value = true;
 });
 
 onUnmounted(() => {
-  window.removeEventListener("scroll", onScroll);
-  window.removeEventListener("resize", onScroll);
+  stopScrollTracking();
+  if (mobileMediaQuery?.removeEventListener) {
+    mobileMediaQuery.removeEventListener("change", handleViewportChange);
+  } else if (mobileMediaQuery?.removeListener) {
+    mobileMediaQuery.removeListener(handleViewportChange);
+  }
 });
 </script>
 
 <template>
   <div
-    ref="scrollContainer"
-    :data-ascii-tracked="tracked ? 'filled-box' : undefined"
-    class="container scroll-bevel"
-    :class="{ 'bg-blur': blur }"
+      ref="scrollContainer"
+      :data-ascii-tracked="tracked ? 'filled-box' : undefined"
+      class="container scroll-bevel"
+      :class="{ 'bg-blur': blur }"
   >
-    <CursorBevelBox :scroll-ratio="scrollRatio"></CursorBevelBox>
-    <CursorBevelBox
-      corner="right bottom"
-      :scroll-ratio="scrollRatio"
-    ></CursorBevelBox>
-    <slot></slot>
+    <template v-if="isReady">
+
+      <template v-if="isMobile">
+        <div class="scroll-bevel__static-frame" aria-hidden="true"></div>
+      </template>
+
+      <template v-else>
+        <CursorBevelBox :scroll-ratio="scrollRatio" />
+        <CursorBevelBox corner="right bottom" :scroll-ratio="scrollRatio" />
+      </template>
+
+    </template>
+
+    <div class="scroll-bevel__content">
+      <slot></slot>
+    </div>
   </div>
 </template>
 
@@ -85,6 +130,21 @@ onUnmounted(() => {
     padding: 30px 26px 50px;
     margin-bottom: 80px;
     max-width: 100dvw;
+  }
+}
+
+.scroll-bevel {
+  &__static-frame {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 1;
+    border: 5px solid var(--main-color);
+  }
+
+  &__content {
+    position: relative;
+    z-index: 10;
   }
 }
 </style>

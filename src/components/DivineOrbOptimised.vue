@@ -358,12 +358,14 @@ const sketch = (p) => {
   ////////////////
 
   p.setup = () => {
+    p.pixelDensity(1);
     p.createCanvas(p.windowWidth, p.windowHeight, p.WEBGL);
 
     atlas = p.createGraphics(
       uniqueChars.length * charW,
       mergedColors.length * charH,
     );
+    atlas.pixelDensity(1);
     atlas.canvas.remove();
     atlas.textFont("monospace");
     atlas.textSize(fSize);
