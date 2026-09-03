@@ -1,11 +1,18 @@
 <script setup>
-import {ref, onMounted, onUnmounted} from "vue";
-import { useElementsRegistry} from "../utils/useRegistry.js";
+import { ref, onMounted, onUnmounted } from "vue";
+import { useElementsRegistry } from "../utils/useRegistry.js";
 const { registerElement, unregisterElement } = useElementsRegistry();
-import {Swiper, SwiperSlide} from "swiper/vue";
-import {Pagination, Navigation, EffectCube, EffectFade, Autoplay, Virtual} from "swiper/modules";
-import {useVisibility} from "../utils/useVisibility.js";
-import {refreshState} from "../utils/refreshState.js";
+import { Swiper, SwiperSlide } from "swiper/vue";
+import {
+  Pagination,
+  Navigation,
+  EffectCube,
+  EffectFade,
+  Autoplay,
+  Virtual,
+} from "swiper/modules";
+import { useVisibility } from "../utils/useVisibility.js";
+import { refreshState } from "../utils/refreshState.js";
 
 import "swiper/css";
 import "swiper/css/pagination";
@@ -19,21 +26,21 @@ import ScrollBevelContainer from "./Partials/ScrollBevelContainer.vue";
 import CustomButton from "./Partials/CustomButton.vue";
 import BevelBox from "./Partials/BevelBox.vue";
 
-const myId = 'projects';
+const myId = "projects";
 
 const props = defineProps({
   data: {
     type: Object,
-    required: true
+    required: true,
   },
   lang: {
     type: String,
-    required: false
+    required: false,
   },
   projects: {
     type: Array,
     required: true,
-  }
+  },
 });
 
 const scrambleRefs = ref([]);
@@ -71,86 +78,97 @@ onUnmounted(() => {
   unregisterElement(myId);
 });
 
-const buttonText = props.lang === 'pl' ? 'zobacz' : 'view';
-
+const buttonText = props.lang === "pl" ? "zobacz" : "view";
 </script>
 
 <template>
-
-  <div ref="sliderContainer" class="w-full  relative" :id="myId">
-
+  <div ref="sliderContainer" class="w-full relative" :id="myId">
     <div class="container px-[40px] mx-auto lg:px-[26px]">
-      <ScrambleText class="mb-6" mode="write" tag="h2" :text="data.heading"/>
+      <ScrambleText class="mb-6" mode="write" tag="h2" :text="data.heading" />
     </div>
 
-    <div class="container p-0 ">
+    <div class="container p-0">
       <swiper
-          :effect="'fade'"
-          :fadeEffect="{crossFade: true}"
-          :modules="[Pagination, Navigation, Virtual, EffectFade]"
-          :navigation="{
-        nextEl: '.custom-swiper-next',
-        prevEl: '.custom-swiper-prev'
-      }"
-          :pagination="{
-        el: '.custom-swiper-pagination',
-        clickable: true
-      }"
-          :simulate-touch="false"
-          :slides-per-group="1"
-          :slides-per-view="1"
-          :space-between="130"
-          :speed="1200"
-          class="projects-swiper"
-          virtual
-          @slideChange="onSlideChange"
-          @swiper="onSwiperInit"
-          @after-init="refreshState"
+        :effect="'fade'"
+        :fadeEffect="{ crossFade: true }"
+        :modules="[Pagination, Navigation, Virtual, EffectFade]"
+        :navigation="{
+          nextEl: '.custom-swiper-next',
+          prevEl: '.custom-swiper-prev',
+        }"
+        :pagination="{
+          el: '.custom-swiper-pagination',
+          clickable: true,
+        }"
+        :simulate-touch="false"
+        :slides-per-group="1"
+        :slides-per-view="1"
+        :space-between="130"
+        :speed="1200"
+        class="projects-swiper"
+        virtual
+        @slideChange="onSlideChange"
+        @swiper="onSwiperInit"
+        @after-init="refreshState"
       >
-        <swiper-slide v-for="(post, index) in projects" :key="post.id"
-                      class="slide-wrapper projects-swiper__slide">
+        <swiper-slide
+          v-for="(post, index) in projects"
+          :key="post.id"
+          class="slide-wrapper projects-swiper__slide"
+        >
           <div class="h-full w-full relative bg-blur">
-            <div  class="container project-container mb-0 ">
+            <div class="container project-container mb-0">
               <ScrambleText
-                  :ref="el => { if (el) scrambleRefs[index] = el }"
-                  :autoplay="false"
-                  :once="false"
-                  :text="post.title"
-                  :scramble-time="400"
-                  class="mb-12 text-center"
-                  mode="write"
-                  tag="h2"
+                :ref="
+                  (el) => {
+                    if (el) scrambleRefs[index] = el;
+                  }
+                "
+                :autoplay="false"
+                :once="false"
+                :text="post.title"
+                :scramble-time="400"
+                class="mb-12 text-center"
+                mode="write"
+                tag="h2"
               />
               <div class="project">
                 <div class="project__left">
                   <div class="post-content mb-10" v-html="post.content"></div>
-                  <CustomButton :link="post.acf.link" :text="buttonText"></CustomButton>
+                  <CustomButton
+                    :link="post.acf.link"
+                    :text="buttonText"
+                  ></CustomButton>
                 </div>
                 <div class="project__right">
                   <swiper
-                      :allow-touch-move="false"
-                      :autoplay="{ delay: 300, disableOnInteraction: false, pauseOnMouseEnter: true }"
-                      :loop="true"
-                      :modules="[EffectCube, Autoplay]"
-                      :nested="true"
-                      :speed="2000"
-                      class="inner-swiper h-full"
-                      effect="cube"
-                      @after-init="refreshState"
+                    :allow-touch-move="false"
+                    :autoplay="{
+                      delay: 300,
+                      disableOnInteraction: false,
+                      pauseOnMouseEnter: true,
+                    }"
+                    :loop="true"
+                    :modules="[EffectCube, Autoplay]"
+                    :nested="true"
+                    :speed="2000"
+                    class="inner-swiper h-full"
+                    effect="cube"
+                    @after-init="refreshState"
                   >
                     <swiper-slide class="h-full">
                       <div class="h-full project__gallery">
-                        <img :src="post.acf.photo_1" alt="">
+                        <img :src="post.acf.photo_1" alt="" />
                       </div>
                     </swiper-slide>
                     <swiper-slide class="h-full">
                       <div class="h-full project__gallery">
-                        <img :src="post.acf.photo_2" alt="">
+                        <img :src="post.acf.photo_2" alt="" />
                       </div>
                     </swiper-slide>
                     <swiper-slide class="h-full">
                       <div class="h-full project__gallery">
-                        <img :src="post.acf.photo_3" alt="">
+                        <img :src="post.acf.photo_3" alt="" />
                       </div>
                     </swiper-slide>
                   </swiper>
@@ -160,28 +178,26 @@ const buttonText = props.lang === 'pl' ? 'zobacz' : 'view';
           </div>
         </swiper-slide>
       </swiper>
-
     </div>
 
     <div class="project-navigation">
       <div class="project-navigation__inner">
         <button class="custom-swiper-prev project-navigation__prev">
-          <img v-svg-inject alt="" src="../assets/next-item.svg">
+          <img v-svg-inject alt="" src="../assets/next-item.svg" />
         </button>
-        <div class="custom-swiper-pagination project-navigation__pagination flex justify-center gap-2"></div>
+        <div
+          class="custom-swiper-pagination project-navigation__pagination flex justify-center gap-2"
+        ></div>
         <button class="custom-swiper-next project-navigation__next">
-          <img v-svg-inject alt="" src="../assets/next-item.svg">
+          <img v-svg-inject alt="" src="../assets/next-item.svg" />
         </button>
       </div>
     </div>
-
   </div>
-
 </template>
 
 <style lang="scss" scoped>
 .project-container.scroll-bevel.container {
-
 }
 
 .project-container {
@@ -233,7 +249,9 @@ const buttonText = props.lang === 'pl' ? 'zobacz' : 'view';
     margin-bottom: 1rem;
   }
 
-  :deep(h2), :deep(h3), :deep(h4) {
+  :deep(h2),
+  :deep(h3),
+  :deep(h4) {
     margin-top: 1.5rem;
     margin-bottom: 0.5rem;
   }
@@ -299,7 +317,6 @@ const buttonText = props.lang === 'pl' ? 'zobacz' : 'view';
     :deep(.swiper-pagination-bullet-active) {
       background-color: var(--main-color);
     }
-
   }
 
   &__prev {
@@ -308,14 +325,15 @@ const buttonText = props.lang === 'pl' ? 'zobacz' : 'view';
     }
   }
 
-  &__prev, &__next {
-    transition: all .2s ease-in-out;
+  &__prev,
+  &__next {
+    transition: all 0.2s ease-in-out;
 
     svg {
       fill: #fff;
       width: 70px;
       height: auto;
-      transition: fill .3s ease-in-out;
+      transition: fill 0.3s ease-in-out;
 
       @include media-breakpoint-down(lg) {
         fill: var(--main-color);

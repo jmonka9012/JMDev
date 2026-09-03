@@ -1,27 +1,28 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, onMounted, onUnmounted } from "vue";
 import { runScrambleLoop } from "../../utils/useScramble.js";
 
 const props = defineProps({
-  text: { type: String, default: "" }
-})
+  text: { type: String, default: "" },
+});
 
 const letters = ref([]);
 const wrapper = ref(null);
 
 const initLetters = () => {
-  const content = props.text || (wrapper.value ? wrapper.value.textContent.trim() : "");
+  const content =
+    props.text || (wrapper.value ? wrapper.value.textContent.trim() : "");
 
-  letters.value = Array.from(content).map(char => ({
+  letters.value = Array.from(content).map((char) => ({
     char,
     isWhitespace: /\s/.test(char),
     hasInteracted: false,
     state: {
       isActive: false,
-      originalChar: char
+      originalChar: char,
     },
     stopTimeout: null,
-    el: null
+    el: null,
   }));
 };
 
@@ -30,13 +31,13 @@ const handleMouseEnter = (item) => {
 
   item.hasInteracted = true;
 
-  // KLUCZ: Jeśli istniał timer kończący animację - kasujemy go!
+  // If an animation-ending timer already exists, clear it.
   if (item.stopTimeout) {
     clearTimeout(item.stopTimeout);
     item.stopTimeout = null;
   }
 
-  // Jeśli animacja nie trwa - odpalamy
+  // Start the animation only when it is not already running.
   if (!item.state.isActive) {
     item.state.isActive = true;
     runScrambleLoop(item.state, item.el);
@@ -58,24 +59,28 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  letters.value.forEach(item => {
+  letters.value.forEach((item) => {
     if (item.stopTimeout) clearTimeout(item.stopTimeout);
   });
 });
 </script>
 
 <template>
-  <span ref="wrapper" class="hover-scramble" :class="{ 'loaded': letters.length > 0 }">
+  <span
+    ref="wrapper"
+    class="hover-scramble"
+    :class="{ loaded: letters.length > 0 }"
+  >
     <span
-        v-for="(item, index) in letters"
-        :key="index"
-        :ref="el => item.el = el"
-        :class="{
-        'whitespace': item.isWhitespace,
-        'has-interacted': item.hasInteracted
+      v-for="(item, index) in letters"
+      :key="index"
+      :ref="(el) => (item.el = el)"
+      :class="{
+        whitespace: item.isWhitespace,
+        'has-interacted': item.hasInteracted,
       }"
-        @mouseenter="handleMouseEnter(item)"
-        @mouseleave="handleMouseLeave(item)"
+      @mouseenter="handleMouseEnter(item)"
+      @mouseleave="handleMouseLeave(item)"
     >
       {{ item.char }}
     </span>
@@ -87,11 +92,11 @@ onUnmounted(() => {
 @import "../../SCSS/_scramble.scss";
 
 .hover-scramble.loaded {
-  display: inline-block; // Poprawia wydajność renderowania tekstu
+  display: inline-block; // Improve text-rendering performance.
 
   span {
-    display: inline-block; // Konieczne dla poprawnego działania animacji i transformacji
-    white-space: pre; // Zachowuje spacje
+    display: inline-block; // Required for animations and transforms to work correctly.
+    white-space: pre; // Preserve whitespace.
 
     &:hover {
       background-color: white;
@@ -100,7 +105,7 @@ onUnmounted(() => {
     }
 
     &.has-interacted:not(:hover) {
-      animation: fade-out-sequence .5s forwards;
+      animation: fade-out-sequence 0.5s forwards;
     }
   }
 }

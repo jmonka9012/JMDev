@@ -2,18 +2,22 @@
 const props = defineProps({
   lang: {
     type: String,
-    required: true
-  }
-})
+    required: true,
+  },
+});
 
-const footerText = props.lang === 'pl' ? "Wyrażam zgodę na przetwarzanie moich danych osobowych w celu prowadzenia rekrutacji na aplikowane przeze mnie stanowisko" : "I consent to the processing of my personal data for the purpose of the recruitment process for the position I have applied for.";
-
+const footerText =
+  props.lang === "pl"
+    ? "Wyrażam zgodę na przetwarzanie moich danych osobowych w celu prowadzenia rekrutacji na aplikowane przeze mnie stanowisko"
+    : "I consent to the processing of my personal data for the purpose of the recruitment process for the position I have applied for.";
 </script>
 
 <template>
   <div class="container">
-    <div class="nota">{{footerText}}</div>
-    <div class="mb-10 text-center">2026 - Jacek Mońka, all rights reserved.</div>
+    <div class="nota">{{ footerText }}</div>
+    <div class="mb-10 text-center">
+      2026 - Jacek Mońka, all rights reserved.
+    </div>
   </div>
 </template>
 

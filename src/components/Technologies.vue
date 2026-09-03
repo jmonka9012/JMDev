@@ -1,39 +1,39 @@
 <script setup>
-import {ref, nextTick, watch, onUnmounted, onMounted} from 'vue';
-import { useElementsRegistry} from "../utils/useRegistry.js";
+import { ref, nextTick, watch, onUnmounted, onMounted } from "vue";
+import { useElementsRegistry } from "../utils/useRegistry.js";
 const { registerElement, unregisterElement } = useElementsRegistry();
-import {useVisibility} from "../utils/useVisibility.js";
+import { useVisibility } from "../utils/useVisibility.js";
 import ScrollBevelContainer from "../components/Partials/ScrollBevelContainer.vue";
 import ScrambleText from "./Partials/ScrambleText.vue";
 
-const myId = 'technologies';
+const myId = "technologies";
 
 const props = defineProps({
   data: {
     type: Object,
-    required: true
+    required: true,
   },
   dataOther: {
     type: Object,
-    required: false
+    required: false,
   },
   technologies: {
     type: Object,
-    required: true
+    required: true,
   },
   svgAnimationClass: {
     type: String,
-    default: 'is-animating'
+    default: "is-animating",
   },
   glowInterval: {
     type: Number,
-    default: 800 // co ile ms losujemy nową technologię do podświetlenia
+    default: 800, // Interval in milliseconds for choosing a technology to highlight.
   },
   glowDuration: {
     type: Number,
-    default: 1500 // jak długo dana technologia się świeci
-  }
-})
+    default: 1500, // Duration in milliseconds for which a technology remains highlighted.
+  },
+});
 
 const wrapper = ref(null);
 const techTitleRefs = ref([]);
@@ -57,7 +57,7 @@ const setTechTitleRef = (el) => {
   }
 };
 
-// Funkcja losująca i podświetlająca technologię
+// Choose and highlight a technology at random.
 const triggerRandomGlow = () => {
   const count = techTitleRefs.value.length;
   if (count === 0) return;
@@ -71,12 +71,13 @@ const triggerRandomGlow = () => {
 
   if (availableIndexes.length === 0) return;
 
-  const randomIndex = availableIndexes[Math.floor(Math.random() * availableIndexes.length)];
+  const randomIndex =
+    availableIndexes[Math.floor(Math.random() * availableIndexes.length)];
 
-  // Zapalamy!
+  // Turn it on.
   glowIndexes.value.add(randomIndex);
 
-  // Gasimy po określonym czasie
+  // Turn it off after the configured duration.
   const offTimer = setTimeout(() => {
     glowIndexes.value.delete(randomIndex);
   }, props.glowDuration);
@@ -86,7 +87,7 @@ const triggerRandomGlow = () => {
 
 const startRandomGlowLoop = () => {
   if (glowIntervalId) return;
-  triggerRandomGlow(); // Odpalamy od razu pierwszy
+  triggerRandomGlow(); // Trigger the first one immediately.
   glowIntervalId = setInterval(triggerRandomGlow, props.glowInterval);
 };
 
@@ -109,7 +110,7 @@ const playTechTitles = async () => {
     }, index * 150);
   });
 
-  const revealDuration = techTitleRefs.value.length * 150 + 300; // 300 = scrambleTime ikon tekstu
+  const revealDuration = techTitleRefs.value.length * 150 + 300; // 300 is the text icon scramble time.
   setTimeout(startRandomGlowLoop, revealDuration);
 };
 
@@ -140,37 +141,54 @@ onUnmounted(() => {
 <template>
   <ScrollBevelContainer :id="myId">
     <div>
-      <ScrambleText class="mb-15" tag="h2" mode="write" :text="data.heading"></ScrambleText>
-      <ScrambleText class="text-lg text-justify mb-15" tag="div" mode="write" :wrap-words="true" :stagger="1" :scramble-time="150" :text="data.text"></ScrambleText>
+      <ScrambleText
+        class="mb-15"
+        tag="h2"
+        mode="write"
+        :text="data.heading"
+      ></ScrambleText>
+      <ScrambleText
+        class="text-lg text-justify mb-15"
+        tag="div"
+        mode="write"
+        :wrap-words="true"
+        :stagger="1"
+        :scramble-time="150"
+        :text="data.text"
+      ></ScrambleText>
       <div ref="wrapper" class="tech-cont">
         <div class="tech" v-for="(tech, index) in technologies" :key="tech.id">
           <div
-              class="tech__svg"
-              :class="{
+            class="tech__svg"
+            :class="{
               [svgAnimationClass]: activeSvgIndexes.has(index),
-              'is-glowing': glowIndexes.has(index)
+              'is-glowing': glowIndexes.has(index),
             }"
           >
-            <img v-svg-inject :src="tech.featured_media" alt="">
+            <img v-svg-inject :src="tech.featured_media" alt="" />
           </div>
           <ScrambleText
-              :ref="setTechTitleRef"
-              tag="h5"
-              mode="write"
-              class="tech__title"
-              :text="tech.title"
-              :scramble-time="300"
-              :autoplay="false"
+            :ref="setTechTitleRef"
+            tag="h5"
+            mode="write"
+            class="tech__title"
+            :text="tech.title"
+            :scramble-time="300"
+            :autoplay="false"
           ></ScrambleText>
         </div>
       </div>
     </div>
 
     <div v-if="dataOther">
-      <ScrambleText class="mb-15" tag="h2" mode="write" :text="dataOther.heading"></ScrambleText>
+      <ScrambleText
+        class="mb-15"
+        tag="h2"
+        mode="write"
+        :text="dataOther.heading"
+      ></ScrambleText>
       <div v-html="dataOther.text" class="strengths-wysiwyg ul--big"></div>
     </div>
-
   </ScrollBevelContainer>
 </template>
 
@@ -209,7 +227,10 @@ onUnmounted(() => {
       height: auto;
       opacity: 0;
       transform: scale(0.8);
-      transition: opacity 0.4s ease, transform 0.4s ease, fill 0.4s ease;
+      transition:
+        opacity 0.4s ease,
+        transform 0.4s ease,
+        fill 0.4s ease;
     }
 
     path {

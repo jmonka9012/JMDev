@@ -1,29 +1,37 @@
 <script setup>
 import BevelBox from "./BevelBox.vue";
 import { gsap } from "gsap";
-import { ref, onMounted, onUnmounted, inject, computed, nextTick, watch } from "vue";
+import {
+  ref,
+  onMounted,
+  onUnmounted,
+  inject,
+  computed,
+  nextTick,
+  watch,
+} from "vue";
 
 const props = defineProps({
   corner: {
     type: String,
-    default: 'left top'
+    default: "left top",
   },
   bevelStyle: {
     type: String,
-    default: '',
+    default: "",
   },
   outside: {
     type: Boolean,
-    default: false
+    default: false,
   },
   scrollRatio: {
     type: Number,
-    default: null
-  }
-})
+    default: null,
+  },
+});
 
-const allSides = ['top', 'right', 'bottom', 'left'];
-const mousePos = inject('mousePos');
+const allSides = ["top", "right", "bottom", "left"];
+const mousePos = inject("mousePos");
 const bevelBox = ref();
 const boxDims = ref({ height: 0, width: 0, cornerDist: 0 });
 let rect = null;
@@ -32,8 +40,8 @@ const activeSides = computed(() => props.corner.split(" "));
 const handleEmit = (payload) => {
   rect = payload;
   updateDimensions();
-  updateDistance(true); // Przekazujemy 'true' dla natychmiastowego skoku
-}
+  updateDistance(true); // Pass true to update immediately.
+};
 
 const updateDimensions = () => {
   if (!bevelBox.value || !rect) return;
@@ -45,12 +53,12 @@ let ticking = false;
 
 const updateDistance = (isInstant = false) => {
   if (rect) {
-    const isScrollOverride = typeof props.scrollRatio === 'number';
+    const isScrollOverride = typeof props.scrollRatio === "number";
 
     if (!isScrollOverride && mousePos) {
       boxDims.value.cornerDist = Math.hypot(
-          mousePos.x.value - rect[activeSides.value[0]],
-          mousePos.y.value - rect[activeSides.value[1]]
+        mousePos.x.value - rect[activeSides.value[0]],
+        mousePos.y.value - rect[activeSides.value[1]],
       );
     }
 
@@ -64,9 +72,15 @@ const updateDistance = (isInstant = false) => {
           ratio = props.scrollRatio;
         } else {
           if (i % 2 !== 0) {
-            ratio = (boxDims.value.cornerDist / (boxDims.value.width + boxDims.value.height)) * 100;
+            ratio =
+              (boxDims.value.cornerDist /
+                (boxDims.value.width + boxDims.value.height)) *
+              100;
           } else {
-            ratio = (boxDims.value.cornerDist / (boxDims.value.height + boxDims.value.width)) * 100;
+            ratio =
+              (boxDims.value.cornerDist /
+                (boxDims.value.height + boxDims.value.width)) *
+              100;
           }
         }
 
@@ -80,9 +94,9 @@ const updateDistance = (isInstant = false) => {
 
     gsap.to(bevelBox.value.$el, {
       clipPath: insetString,
-      duration: isInstant === true ? 0 : (isScrollOverride ? 0.5 : 2),
+      duration: isInstant === true ? 0 : isScrollOverride ? 0.5 : 2,
       ease: "power2.out",
-      overwrite: "auto"
+      overwrite: "auto",
     });
   }
   ticking = false;
@@ -90,46 +104,56 @@ const updateDistance = (isInstant = false) => {
 
 if (mousePos) {
   watch([() => mousePos.x.value, () => mousePos.y.value], () => {
-    if (!ticking && bevelBox.value?.isVisible && typeof props.scrollRatio !== 'number') {
+    if (
+      !ticking &&
+      bevelBox.value?.isVisible &&
+      typeof props.scrollRatio !== "number"
+    ) {
       window.requestAnimationFrame(() => updateDistance(false));
       ticking = true;
     }
   });
 }
 
-watch(() => props.scrollRatio, () => {
-  if (!ticking && bevelBox.value?.isVisible) {
-    window.requestAnimationFrame(() => updateDistance(false));
-    ticking = true;
-  }
-});
+watch(
+  () => props.scrollRatio,
+  () => {
+    if (!ticking && bevelBox.value?.isVisible) {
+      window.requestAnimationFrame(() => updateDistance(false));
+      ticking = true;
+    }
+  },
+);
 
-watch(() => bevelBox.value?.isVisible, (newVisible) => {
-  if (newVisible) {
-    window.requestAnimationFrame(() => updateDistance(true));
-  }
-});
+watch(
+  () => bevelBox.value?.isVisible,
+  (newVisible) => {
+    if (newVisible) {
+      window.requestAnimationFrame(() => updateDistance(true));
+    }
+  },
+);
 
 onMounted(async () => {
-  window.addEventListener('resize', updateDimensions);
+  window.addEventListener("resize", updateDimensions);
   await nextTick();
   updateDimensions();
 });
 
 onUnmounted(() => {
-  window.removeEventListener('resize', updateDimensions);
+  window.removeEventListener("resize", updateDimensions);
 });
 </script>
 
 <template>
   <BevelBox
-      ref="bevelBox"
-      class="bevel-box"
-      :style="props.bevelStyle"
-      :cbb-child="true"
-      :active-sides="props.corner"
-      :max-distance="300"
-      @emit-rect="handleEmit"
+    ref="bevelBox"
+    class="bevel-box"
+    :style="props.bevelStyle"
+    :cbb-child="true"
+    :active-sides="props.corner"
+    :max-distance="300"
+    @emit-rect="handleEmit"
   >
     <slot></slot>
   </BevelBox>
@@ -143,7 +167,7 @@ onUnmounted(() => {
   height: 100%;
   pointer-events: none;
 
-  // Wcześniej wspomniana akceleracja GPU dla renderowania maski - odciąża Layout Paint
+  // GPU acceleration for mask rendering reduces layout and paint work.
   will-change: clip-path;
 }
 </style>

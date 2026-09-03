@@ -1,9 +1,9 @@
 <script setup>
 import { registeredElements } from "../utils/useRegistry.js";
-import { inject, onMounted, ref, watch, nextTick } from 'vue';
+import { inject, onMounted, ref, watch, nextTick } from "vue";
 import { fadeIn } from "../utils/animations.js";
 
-const lenis = inject('lenis');
+const lenis = inject("lenis");
 const menuItems = ref([]);
 const activeId = ref(null);
 const hasAnimated = ref(false);
@@ -11,20 +11,20 @@ const hasAnimated = ref(false);
 const props = defineProps({
   lang: {
     type: String,
-    required: true
-  }
-})
+    required: true,
+  },
+});
 
 const scrollOptions = {
   offset: -160,
   duration: 1.2,
   easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
-}
+};
 
 const scrollTo = (id) => {
   activeId.value = id;
   lenis.scrollTo(`#${id}`, scrollOptions);
-}
+};
 
 const animateMenu = async () => {
   if (hasAnimated.value || menuItems.value.length === 0) return;
@@ -32,35 +32,40 @@ const animateMenu = async () => {
 
   await nextTick();
   menuItems.value.forEach((item, i) => {
-    if (item) fadeIn(item, 1.2, .05 * i, -20, -20);
+    if (item) fadeIn(item, 1.2, 0.05 * i, -20, -20);
   });
-}
+};
 
-watch(() => menuItems.value.length, (newLen) => {
-  if (newLen > 0) {
-    animateMenu();
-  }
-});
+watch(
+  () => menuItems.value.length,
+  (newLen) => {
+    if (newLen > 0) {
+      animateMenu();
+    }
+  },
+);
 
 onMounted(() => {
   const observerOptions = {
     root: null,
-    rootMargin: '-20% 0px -60% 0px',
-    threshold: 0
+    rootMargin: "-20% 0px -60% 0px",
+    threshold: 0,
   };
 
   const observerCallback = (entries) => {
-    entries.forEach(entry => {
+    entries.forEach((entry) => {
       if (entry.isIntersecting) {
         activeId.value = entry.target.id;
 
-        // Automatyczne centrowanie aktywnego elementu w pociągniętym menu mobilnym
-        const activeIndex = registeredElements.value.findIndex(el => el.id === entry.target.id);
+        // Automatically center the active item in the horizontally scrolled mobile menu.
+        const activeIndex = registeredElements.value.findIndex(
+          (el) => el.id === entry.target.id,
+        );
         if (activeIndex !== -1 && menuItems.value[activeIndex]) {
           menuItems.value[activeIndex].scrollIntoView({
-            behavior: 'smooth',
-            inline: 'center',
-            block: 'nearest'
+            behavior: "smooth",
+            inline: "center",
+            block: "nearest",
           });
         }
       }
@@ -70,27 +75,27 @@ onMounted(() => {
   const observer = new IntersectionObserver(observerCallback, observerOptions);
 
   setTimeout(() => {
-    registeredElements.value.forEach(item => {
+    registeredElements.value.forEach((item) => {
       const section = document.getElementById(item.id);
       if (section) observer.observe(section);
     });
   }, 300);
 });
 
-const langSwapText = props.lang === 'pl' ? 'EN' : 'PL';
+const langSwapText = props.lang === "pl" ? "EN" : "PL";
 </script>
 
 <template>
   <header class="site-header">
     <nav class="menu container">
       <div
-          role="button"
-          v-for="(item, index) in registeredElements"
-          :key="item.id"
-          @click="scrollTo(item.id)"
-          ref="menuItems"
-          class="menu__item js-hidden"
-          :class="{ 'is-active': activeId === item.id }"
+        role="button"
+        v-for="(item, index) in registeredElements"
+        :key="item.id"
+        @click="scrollTo(item.id)"
+        ref="menuItems"
+        class="menu__item js-hidden"
+        :class="{ 'is-active': activeId === item.id }"
       >
         {{ item.title }}
       </div>
@@ -117,9 +122,9 @@ const langSwapText = props.lang === 'pl' ? 'EN' : 'PL';
   top: 32px;
   z-index: 10;
   font-size: 24px;
-  transition: all .2s ease-out;
+  transition: all 0.2s ease-out;
   padding: 10px 17px;
-  
+
   &:hover {
     color: black;
     background-color: #fff;
@@ -129,7 +134,7 @@ const langSwapText = props.lang === 'pl' ? 'EN' : 'PL';
     //top: calc(32px + 40px);
     color: black;
     background-color: #fff;
-    top: calc(100dvh - 80px)
+    top: calc(100dvh - 80px);
   }
 }
 
@@ -159,14 +164,14 @@ const langSwapText = props.lang === 'pl' ? 'EN' : 'PL';
 
   &::before {
     --mask-def: radial-gradient(
-            ellipse at top,
-            black 0%,
-            black 30%,
-            transparent 70%
+      ellipse at top,
+      black 0%,
+      black 30%,
+      transparent 70%
     );
     height: 130%;
     max-height: unset;
-    content: '';
+    content: "";
     position: absolute;
     inset: 0;
     backdrop-filter: blur(12px);
@@ -182,7 +187,7 @@ const langSwapText = props.lang === 'pl' ? 'EN' : 'PL';
     user-select: none;
     z-index: 5;
     position: relative;
-    transition: color .2s ease-out;
+    transition: color 0.2s ease-out;
     white-space: nowrap;
 
     @include media-breakpoint-down(md) {
@@ -191,11 +196,12 @@ const langSwapText = props.lang === 'pl' ? 'EN' : 'PL';
       font-size: 18px;
     }
 
-    &::before, &::after {
-      content: '';
+    &::before,
+    &::after {
+      content: "";
       position: absolute;
       inset: 0;
-      transition: all .2s ease-out;
+      transition: all 0.2s ease-out;
       z-index: -1;
       opacity: 0;
     }
@@ -210,9 +216,11 @@ const langSwapText = props.lang === 'pl' ? 'EN' : 'PL';
       transform: translate(10px, 10px);
     }
 
-    &.is-active, &:hover {
+    &.is-active,
+    &:hover {
       color: black;
-      &::before, &::after {
+      &::before,
+      &::after {
         opacity: 1;
       }
       &::before {

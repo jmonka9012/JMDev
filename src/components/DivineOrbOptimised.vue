@@ -1,20 +1,20 @@
 <script setup>
-import {onMounted, ref, onUnmounted, inject} from "vue";
-import rawAscii from './DivineOrb.txt?raw';
-import bgVertShader from './bgAscii.vert?raw';
-import bgFragShader from './bgAscii.frag?raw';
+import { onMounted, ref, onUnmounted, inject } from "vue";
+import rawAscii from "./DivineOrb.txt?raw";
+import bgVertShader from "./bgAscii.vert?raw";
+import bgFragShader from "./bgAscii.frag?raw";
 
-const lenis = inject('lenis');
-const isTouch = inject('isTouch');
-const touchPos = inject('touchPos');
+const lenis = inject("lenis");
+const isTouch = inject("isTouch");
+const touchPos = inject("touchPos");
 
-import {ASCII_STRING_NO_JP} from "../utils/asciiConstants.js";
+import { ASCII_STRING_NO_JP } from "../utils/asciiConstants.js";
 
-let splitAscii = rawAscii.split('\n');
+let splitAscii = rawAscii.split("\n");
 
 splitAscii.forEach((line, i) => {
   splitAscii[i] = line.split("");
-})
+});
 const charImageWidth = splitAscii[0].length;
 const charImageHeight = splitAscii.length;
 let p5Instance = null;
@@ -23,36 +23,36 @@ const container = ref(null);
 const charMap = {
   ".": {
     substituteChars: "`.,'-",
-    color: { r: 0, g: 155, b: 0 }
+    color: { r: 0, g: 155, b: 0 },
   },
   ":": {
     substituteChars: ":xlj!=o",
-    color: { r: 80, g: 90, b: 80 }
+    color: { r: 80, g: 90, b: 80 },
   },
   ";": {
     substituteChars: ":;!jJLlI=",
-    color: { r: 190, g: 190, b: 190 }
+    color: { r: 190, g: 190, b: 190 },
   },
   "+": {
     substituteChars: "x>+<=^",
-    color: { r: 120, g: 190, b: 120 }
+    color: { r: 120, g: 190, b: 120 },
   },
-  "x": {
+  x: {
     substituteChars: "x+X34#ahgure",
-    color: { r: 120, g: 190, b: 120 }
+    color: { r: 120, g: 190, b: 120 },
   },
-  "X": {
+  X: {
     substituteChars: "Xx34fO/#",
-    color: { r: 200, g: 200, b: 200 }
+    color: { r: 200, g: 200, b: 200 },
   },
-  "$": {
+  $: {
     substituteChars: "#A8Hha",
-    color: { r: 0, g: 255, b: 0 }
+    color: { r: 0, g: 255, b: 0 },
   },
   "&": {
     substituteChars: "#@8$%",
-    color: { r: 255, g: 255, b: 255 }
-  }
+    color: { r: 255, g: 255, b: 255 },
+  },
 };
 
 for (const key in charMap) {
@@ -70,25 +70,24 @@ let longestSubstitute = 0;
 Object.keys(charMap).forEach((key) => {
   const index = uniqueChars.indexOf(key);
   substituteCharTextureData[index] = [];
-  const charArray = charMap[key].substituteChars.split('');
+  const charArray = charMap[key].substituteChars.split("");
   charArray.forEach((char, i) => {
     substituteCharTextureData[index][i] = uniqueChars.indexOf(char);
-  })
-  if (charArray.length > longestSubstitute) longestSubstitute = charArray.length;
-})
-
-
+  });
+  if (charArray.length > longestSubstitute)
+    longestSubstitute = charArray.length;
+});
 
 let lines = [];
 const lineConfig = {
   rDecr: 7,
   gDecr: 2,
   bDecr: 7,
-  startColor: {r: 255, g: 255, b: 255},
+  startColor: { r: 255, g: 255, b: 255 },
   distTolerance: 1800,
-  widthRatioConst: 320
-}
-const availibleDirections = ['down', 'up', 'right', 'left'];
+  widthRatioConst: 320,
+};
+const availibleDirections = ["down", "up", "right", "left"];
 
 let uniqueLineColors = [];
 
@@ -104,9 +103,13 @@ while (r > 0 || g > 0 || b > 0) {
   b -= lineConfig.bDecr;
 }
 
-const uniqueImageColors = [...new Set(
-    Object.values(charMap).map(item => `${item.color.r},${item.color.g},${item.color.b}`)
-)];
+const uniqueImageColors = [
+  ...new Set(
+    Object.values(charMap).map(
+      (item) => `${item.color.r},${item.color.g},${item.color.b}`,
+    ),
+  ),
+];
 
 const mergedColors = [...new Set([...uniqueLineColors, ...uniqueImageColors])];
 
@@ -130,21 +133,21 @@ let hasMoved = false;
 
 const onFirstInteraction = () => {
   hasMoved = true;
-  window.removeEventListener('mousemove', onFirstInteraction);
-  window.removeEventListener('touchstart', onFirstInteraction);
+  window.removeEventListener("mousemove", onFirstInteraction);
+  window.removeEventListener("touchstart", onFirstInteraction);
 };
 
 const updateTrackedElements = () => {
-  const trackedBoxes = document.querySelectorAll('[data-ascii-tracked]');
+  const trackedBoxes = document.querySelectorAll("[data-ascii-tracked]");
 
-  trackedElements.value = Array.from(trackedBoxes).map(el => {
+  trackedElements.value = Array.from(trackedBoxes).map((el) => {
     const rect = el.getBoundingClientRect();
     const scrollX = window.scrollX || document.documentElement.scrollLeft;
     const scrollY = window.scrollY || document.documentElement.scrollTop;
 
     const borderWidthX = parseInt(el.dataset.asciiBorderWidthX, 10) || 1;
     const borderWidthY = parseInt(el.dataset.asciiBorderWidthY, 10) || 1;
-    const placement = el.dataset.asciiBorderPlacement || 'inside';
+    const placement = el.dataset.asciiBorderPlacement || "inside";
     return {
       el: el,
       ascii: el.dataset.asciiTracked, // Stores "border-box" or "filled-box"
@@ -152,12 +155,12 @@ const updateTrackedElements = () => {
       borderWidthY: borderWidthY,
       placement: placement,
       vertices: {
-        topLeft:     { x: rect.left + scrollX,  y: rect.top + scrollY },
-        topRight:    { x: rect.right + scrollX, y: rect.top + scrollY },
+        topLeft: { x: rect.left + scrollX, y: rect.top + scrollY },
+        topRight: { x: rect.right + scrollX, y: rect.top + scrollY },
         bottomRight: { x: rect.right + scrollX, y: rect.bottom + scrollY },
-        bottomLeft:  { x: rect.left + scrollX,  y: rect.bottom + scrollY }
+        bottomLeft: { x: rect.left + scrollX, y: rect.bottom + scrollY },
       },
-      size: { width: rect.width, height: rect.height }
+      size: { width: rect.width, height: rect.height },
     };
   });
 };
@@ -173,14 +176,14 @@ const sketch = (p) => {
   let bgShader;
   const colorIndexMap = new Map();
   let linesPerSecond = p.ceil(p.width / lineConfig.widthRatioConst);
-  let framesForLine = p.ceil(60/linesPerSecond);
+  let framesForLine = p.ceil(60 / linesPerSecond);
 
   ////////////////////////////////
   //////           INIT
   ////////////////////////////////
   const initGridAndTexture = () => {
     linesPerSecond = p.ceil(p.width / lineConfig.widthRatioConst);
-    framesForLine = p.ceil(1/linesPerSecond * 60);
+    framesForLine = p.ceil((1 / linesPerSecond) * 60);
 
     bgCols = Math.ceil(p.width / pastedCharW);
     bgRows = Math.ceil((p.height * 10) / pastedCharH);
@@ -203,8 +206,10 @@ const sketch = (p) => {
     const contWidth = 1600;
 
     if (p.width > contWidth) {
-      imgOffsetX = p.width/2 - estimWidth;
-      imgOffsetX > contWidth/2 - estimWidth ? imgOffsetX = contWidth/2 - estimWidth : imgOffsetX;
+      imgOffsetX = p.width / 2 - estimWidth;
+      imgOffsetX > contWidth / 2 - estimWidth
+        ? (imgOffsetX = contWidth / 2 - estimWidth)
+        : imgOffsetX;
     } else {
       imgOffsetX = -0.1 * p.width;
 
@@ -214,7 +219,9 @@ const sketch = (p) => {
     }
 
     let imgStartCol = Math.floor((p.width / 2 + imgOffsetX) / pastedCharW);
-    let imgStartRow = Math.floor((p.height / 2 - estimHeight / 2) / pastedCharH);
+    let imgStartRow = Math.floor(
+      (p.height / 2 - estimHeight / 2) / pastedCharH,
+    );
 
     // Burn ASCII image into data texture
     for (let iY = 0; iY < splitAscii.length; iY++) {
@@ -237,21 +244,21 @@ const sketch = (p) => {
 
           bgDataTexture.pixels[index + 0] = uniqueChars.indexOf(char);
           bgDataTexture.pixels[index + 1] = colorIndex;
-          bgDataTexture.pixels[index + 2] = 255;  // BLUE = 255 - Image
+          bgDataTexture.pixels[index + 2] = 255; // BLUE = 255 - Image
           bgDataTexture.pixels[index + 3] = 255;
         }
       }
     }
 
-      // Borders and fills
+    // Borders and fills
     if (trackedElements && trackedElements.value) {
-      trackedElements.value.forEach(box => {
+      trackedElements.value.forEach((box) => {
         const startCol = Math.floor(box.vertices.topLeft.x / pastedCharW);
         const endCol = Math.floor(box.vertices.bottomRight.x / pastedCharW);
         const startRow = Math.floor(box.vertices.topLeft.y / pastedCharH);
         const endRow = Math.floor(box.vertices.bottomRight.y / pastedCharH);
 
-        const charIndex = uniqueChars.indexOf('+');
+        const charIndex = uniqueChars.indexOf("+");
         if (charIndex === -1) return;
 
         const wx = box.borderWidthX;
@@ -261,7 +268,7 @@ const sketch = (p) => {
         let outerStartCol, outerEndCol, outerStartRow, outerEndRow;
         let innerStartCol, innerEndCol, innerStartRow, innerEndRow;
 
-        if (placement === 'outside') {
+        if (placement === "outside") {
           outerStartCol = startCol - wx;
           outerEndCol = endCol + wx;
           outerStartRow = startRow - wy;
@@ -298,16 +305,21 @@ const sketch = (p) => {
           }
         };
 
-        if (box.ascii === 'filled-box') {
+        if (box.ascii === "filled-box") {
           for (let r = outerStartRow; r <= outerEndRow; r++) {
             for (let c = outerStartCol; c <= outerEndCol; c++) {
               drawPixel(c, r, FILLED_BOX_BLUE);
             }
           }
-        } else if (box.ascii === 'border-box') {
+        } else if (box.ascii === "border-box") {
           for (let r = outerStartRow; r <= outerEndRow; r++) {
             for (let c = outerStartCol; c <= outerEndCol; c++) {
-              if (r >= innerStartRow && r <= innerEndRow && c >= innerStartCol && c <= innerEndCol) {
+              if (
+                r >= innerStartRow &&
+                r <= innerEndRow &&
+                c >= innerStartCol &&
+                c <= innerEndCol
+              ) {
                 continue;
               }
               drawPixel(c, r, BORDER_BOX_BLUE);
@@ -321,7 +333,8 @@ const sketch = (p) => {
           }
         }
       });
-    }    bgDataTexture.updatePixels();
+    }
+    bgDataTexture.updatePixels();
     bgDataTexture.drawingContext.imageSmoothingEnabled = false;
 
     // Build main container
@@ -340,7 +353,6 @@ const sketch = (p) => {
     lines = [];
   };
 
-
   ////////////////
   // SETUP
   ////////////////
@@ -348,9 +360,12 @@ const sketch = (p) => {
   p.setup = () => {
     p.createCanvas(p.windowWidth, p.windowHeight, p.WEBGL);
 
-    atlas = p.createGraphics(uniqueChars.length * charW, mergedColors.length * charH);
+    atlas = p.createGraphics(
+      uniqueChars.length * charW,
+      mergedColors.length * charH,
+    );
     atlas.canvas.remove();
-    atlas.textFont('monospace');
+    atlas.textFont("monospace");
     atlas.textSize(fSize);
     atlas.textAlign(p.LEFT, p.TOP);
     atlas.fill(255);
@@ -362,7 +377,7 @@ const sketch = (p) => {
       let [r, g, b] = color.split(",").map(Number);
 
       atlasMap[color] = {};
-      atlasMap[color].color = {r, g, b};
+      atlasMap[color].color = { r, g, b };
 
       for (let j = 0; j < uniqueChars.length; j++) {
         const char = uniqueChars[j];
@@ -390,7 +405,10 @@ const sketch = (p) => {
       for (let y = 0; y < height; y++) {
         let dataValue = 255;
 
-        if (substituteCharTextureData[x] !== undefined && substituteCharTextureData[x][y] !== undefined) {
+        if (
+          substituteCharTextureData[x] !== undefined &&
+          substituteCharTextureData[x][y] !== undefined
+        ) {
           dataValue = substituteCharTextureData[x][y];
         }
 
@@ -399,7 +417,8 @@ const sketch = (p) => {
         substituteTexture.pixels[index] = dataValue;
         substituteTexture.pixels[index + 1] = 0;
         if (y === 0 && substituteCharTextureData[x]) {
-          substituteTexture.pixels[index + 2] = substituteCharTextureData[x].length - 1;
+          substituteTexture.pixels[index + 2] =
+            substituteCharTextureData[x].length - 1;
         } else {
           substituteTexture.pixels[index + 2] = 0;
         }
@@ -434,13 +453,16 @@ const sketch = (p) => {
       if (isLineKillable(l)) {
         const totalLen = MAX_LINE_LENGTH + l.speed;
         for (let s = 0; s <= totalLen; s++) {
-          const col = l.col + (s * l.dirX * -1);
-          const row = l.row + (s * l.dirY * -1);
+          const col = l.col + s * l.dirX * -1;
+          const row = l.row + s * l.dirY * -1;
           if (isWithinGrid(col, row)) {
             const index = (row * bgCols + col) * 4;
-            if ((bgDataTexture.pixels[index + 2] !== 255) &&
-                (bgDataTexture.pixels[index + 2] !== 150) &&
-                (bgDataTexture.pixels[index + 2] !== 140)) { // Blue = 140 - line
+            if (
+              bgDataTexture.pixels[index + 2] !== 255 &&
+              bgDataTexture.pixels[index + 2] !== 150 &&
+              bgDataTexture.pixels[index + 2] !== 140
+            ) {
+              // Blue = 140 - line
               bgDataTexture.pixels[index + 3] = 0;
             }
           }
@@ -462,13 +484,16 @@ const sketch = (p) => {
       let letter = 0;
 
       while (r > 0 || g > 0 || b > 0) {
-        let col = l.col + (letter * l.dirX * -1);
-        let row = l.row + (letter * l.dirY * -1);
+        let col = l.col + letter * l.dirX * -1;
+        let row = l.row + letter * l.dirY * -1;
 
         if (isWithinGrid(col, row)) {
           const index = (row * bgCols + col) * 4;
 
-          if ((bgDataTexture.pixels[index + 2] !== 255) && (bgDataTexture.pixels[index + 2] !== 150)) {
+          if (
+            bgDataTexture.pixels[index + 2] !== 255 &&
+            bgDataTexture.pixels[index + 2] !== 150
+          ) {
             const colorString = uniqueLineColors[letter];
             const colorIndex = colorIndexMap.get(colorString);
 
@@ -486,12 +511,15 @@ const sketch = (p) => {
       }
 
       for (let s = 0; s <= l.speed; s++) {
-        let clearCol = l.col + ((letter + s) * l.dirX * -1);
-        let clearRow = l.row + ((letter + s) * l.dirY * -1);
+        let clearCol = l.col + (letter + s) * l.dirX * -1;
+        let clearRow = l.row + (letter + s) * l.dirY * -1;
 
         if (isWithinGrid(clearCol, clearRow)) {
           const index = (clearRow * bgCols + clearCol) * 4;
-          if ((bgDataTexture.pixels[index + 2] !== 255) && (bgDataTexture.pixels[index + 2] !== 150)) {
+          if (
+            bgDataTexture.pixels[index + 2] !== 255 &&
+            bgDataTexture.pixels[index + 2] !== 150
+          ) {
             bgDataTexture.pixels[index + 3] = 0;
           }
         }
@@ -518,8 +546,12 @@ const sketch = (p) => {
     } else {
       let currentDelta = pageDelta;
 
-      const mx = isTouch.value ? touchPos.x.value - p.width / 2 : p.mouseX - p.width / 2;
-      const my = isTouch.value ? touchPos.y.value - p.height / 2 : p.mouseY - p.height / 2 - currentDelta;
+      const mx = isTouch.value
+        ? touchPos.x.value - p.width / 2
+        : p.mouseX - p.width / 2;
+      const my = isTouch.value
+        ? touchPos.y.value - p.height / 2
+        : p.mouseY - p.height / 2 - currentDelta;
 
       const startX = -p.width / 2;
       const startY = -p.height / 2;
@@ -531,20 +563,23 @@ const sketch = (p) => {
       mousePixelY = my - startY;
     }
 
-    bgShader.setUniform('uLineColorsNum', uniqueLineColors.length - 1)
-    bgShader.setUniform('uScreenSize', [gridPixelWidth, gridPixelHeight])
-    bgShader.setUniform('uMouseGrid', [mouseCol, mouseRow]);
-    bgShader.setUniform('uMousePixel', [mousePixelX, mousePixelY]);
-    bgShader.setUniform('uPastedCharSize', [pastedCharW, pastedCharH]);
-    bgShader.setUniform('uTime', p.frameCount * 0.05);
-    bgShader.setUniform('uVelocity', pageVelocity);
-    bgShader.setUniform('uCharCount', uniqueChars.length);
-    bgShader.setUniform('uSubArray', substituteTexture);
-    bgShader.setUniform('uSubSize', [width, height]);
-    bgShader.setUniform('uBgData', bgDataTexture);
-    bgShader.setUniform('uBgSize', [bgCols, bgRows]);
-    bgShader.setUniform('uTex', atlas);
-    bgShader.setUniform('uCharUVSize', [charW / atlas.width, charH / atlas.height]);
+    bgShader.setUniform("uLineColorsNum", uniqueLineColors.length - 1);
+    bgShader.setUniform("uScreenSize", [gridPixelWidth, gridPixelHeight]);
+    bgShader.setUniform("uMouseGrid", [mouseCol, mouseRow]);
+    bgShader.setUniform("uMousePixel", [mousePixelX, mousePixelY]);
+    bgShader.setUniform("uPastedCharSize", [pastedCharW, pastedCharH]);
+    bgShader.setUniform("uTime", p.frameCount * 0.05);
+    bgShader.setUniform("uVelocity", pageVelocity);
+    bgShader.setUniform("uCharCount", uniqueChars.length);
+    bgShader.setUniform("uSubArray", substituteTexture);
+    bgShader.setUniform("uSubSize", [width, height]);
+    bgShader.setUniform("uBgData", bgDataTexture);
+    bgShader.setUniform("uBgSize", [bgCols, bgRows]);
+    bgShader.setUniform("uTex", atlas);
+    bgShader.setUniform("uCharUVSize", [
+      charW / atlas.width,
+      charH / atlas.height,
+    ]);
 
     p.noStroke();
 
@@ -561,26 +596,34 @@ const sketch = (p) => {
     // p.pop();
   };
 
-  const generateLine = (speed, direction = p.random(availibleDirections), startCol, startRow) => {
+  const generateLine = (
+    speed,
+    direction = p.random(availibleDirections),
+    startCol,
+    startRow,
+  ) => {
     let line = {};
-    let col, row, dirX = 0, dirY = 0;
+    let col,
+      row,
+      dirX = 0,
+      dirY = 0;
 
     const currentTopRow = Math.floor(Math.abs(pageDelta) / pastedCharH);
     const rowsOnScreen = Math.ceil(p.height / pastedCharH);
     const currentBottomRow = currentTopRow + rowsOnScreen;
 
-    switch(direction) {
-      case 'up':
+    switch (direction) {
+      case "up":
         col = p.floor(p.random(0, bgCols));
         row = currentBottomRow;
         dirY = -1;
         break;
-      case 'left':
+      case "left":
         col = bgCols;
         row = p.floor(p.random(currentTopRow, currentBottomRow));
         dirX = -1;
         break;
-      case 'right':
+      case "right":
         col = -1;
         row = p.floor(p.random(currentTopRow, currentBottomRow));
         dirX = 1;
@@ -600,11 +643,11 @@ const sketch = (p) => {
       frame: 0,
       dirX: dirX,
       dirY: dirY,
-      speed: speed
+      speed: speed,
     };
 
     return line;
-  }
+  };
 
   const getLineLength = () => {
     const lenR = lineConfig.startColor.r / lineConfig.rDecr;
@@ -615,8 +658,8 @@ const sketch = (p) => {
   const MAX_LINE_LENGTH = getLineLength();
 
   const isLineKillable = (line) => {
-    const tailCol = line.col - (line.dirX * MAX_LINE_LENGTH);
-    const tailRow = line.row - (line.dirY * MAX_LINE_LENGTH);
+    const tailCol = line.col - line.dirX * MAX_LINE_LENGTH;
+    const tailRow = line.row - line.dirY * MAX_LINE_LENGTH;
 
     const currentTopRow = Math.floor(Math.abs(pageDelta) / pastedCharH);
     const rowsOnScreen = Math.ceil(p.height / pastedCharH);
@@ -637,7 +680,7 @@ const sketch = (p) => {
       return false;
     }
     return true;
-  }
+  };
 
   let resizeTimer;
 
@@ -656,37 +699,37 @@ const handleScroll = (e) => {
 
   pageDelta = -e.actualScroll;
   pageVelocity = Math.abs(-e.lastVelocity);
-
 };
 
 onMounted(async () => {
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     const p5 = (await import("p5")).default;
 
     updateTrackedElements();
 
-    window.addEventListener('mousemove', onFirstInteraction, { passive: true });
-    window.addEventListener('touchstart', onFirstInteraction, { passive: true });
+    window.addEventListener("mousemove", onFirstInteraction, { passive: true });
+    window.addEventListener("touchstart", onFirstInteraction, {
+      passive: true,
+    });
 
     if (container.value) {
       p5Instance = new p5(sketch, container.value);
-      lenis.on('scroll', handleScroll);
+      lenis.on("scroll", handleScroll);
     }
   }
 });
 
 onUnmounted(() => {
-  window.removeEventListener('mousemove', onFirstInteraction);
-  window.removeEventListener('touchstart', onFirstInteraction);
+  window.removeEventListener("mousemove", onFirstInteraction);
+  window.removeEventListener("touchstart", onFirstInteraction);
 
   if (p5Instance) {
     p5Instance.remove();
   }
   if (lenis) {
-    lenis.off('scroll', handleScroll);
+    lenis.off("scroll", handleScroll);
   }
 });
-
 </script>
 <template>
   <div ref="container"></div>

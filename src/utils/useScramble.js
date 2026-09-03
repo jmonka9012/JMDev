@@ -1,84 +1,86 @@
-import { nextTick } from 'vue';
+import { nextTick } from "vue";
 import { gsap } from "gsap";
-import {ASCII_STRING_NO_JP} from "../utils/asciiConstants.js";
+import { ASCII_STRING_NO_JP } from "../utils/asciiConstants.js";
 
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const runScrambleLoop = (state, element) => {
-    if (!state.isActive || !element) return;
+  if (!state.isActive || !element) return;
 
-    element.textContent = ASCII_STRING_NO_JP[Math.floor(Math.random() * ASCII_STRING_NO_JP.length)];
+  element.textContent =
+    ASCII_STRING_NO_JP[Math.floor(Math.random() * ASCII_STRING_NO_JP.length)];
 
-    requestAnimationFrame(() => runScrambleLoop(state, element));
-}
+  requestAnimationFrame(() => runScrambleLoop(state, element));
+};
 
 export function useScramble() {
-    let timeouts = [];
+  let timeouts = [];
 
-    const clearTimeouts = () => {
-        timeouts.forEach(clearTimeout);
-        timeouts = [];
-    };
+  const clearTimeouts = () => {
+    timeouts.forEach(clearTimeout);
+    timeouts = [];
+  };
 
-    const launchWriteAnimation = async (lettersRef, config) => {
-        await nextTick();
-        clearTimeouts();
+  const launchWriteAnimation = async (lettersRef, config) => {
+    await nextTick();
+    clearTimeouts();
 
-        const { scrambleTime = 800, stagger = 40 } = config;
+    const { scrambleTime = 800, stagger = 40 } = config;
 
-        for (let i = 0; i < lettersRef.value.length; i++) {
-            const item = lettersRef.value[i];
+    for (let i = 0; i < lettersRef.value.length; i++) {
+      const item = lettersRef.value[i];
 
-            item.state.isActive = true;
-            item.visible = true;
+      item.state.isActive = true;
+      item.visible = true;
 
-            runScrambleLoop(item.state, item.el);
+      runScrambleLoop(item.state, item.el);
 
-            const timer = setTimeout(() => {
-                item.state.isActive = false;
-                if (item.el) item.el.innerText = item.state.originalChar;
-            }, scrambleTime);
+      const timer = setTimeout(() => {
+        item.state.isActive = false;
+        if (item.el) item.el.innerText = item.state.originalChar;
+      }, scrambleTime);
 
-            timeouts.push(timer);
+      timeouts.push(timer);
 
-            if (stagger > 0) await sleep(stagger);
-        }
-    };
+      if (stagger > 0) await sleep(stagger);
+    }
+  };
 
-    const launchFlashAnimation = async (lettersRef, config) => {
-        await nextTick();
-        clearTimeouts();
+  const launchFlashAnimation = async (lettersRef, config) => {
+    await nextTick();
+    clearTimeouts();
 
-        const { flash = { from: 320, to: 500 } } = config;
+    const { flash = { from: 320, to: 500 } } = config;
 
-        for (let i = 0; i < lettersRef.value.length; i++) {
-            const item = lettersRef.value[i];
+    for (let i = 0; i < lettersRef.value.length; i++) {
+      const item = lettersRef.value[i];
 
-            item.state.isActive = true;
-            item.visible = true;
+      item.state.isActive = true;
+      item.visible = true;
 
-            const scrambleTime = Math.random() * (flash.to - flash.from) + flash.from;
-            const flashDuration = Math.random() * (flash.to - flash.from) + flash.from;
+      const scrambleTime = Math.random() * (flash.to - flash.from) + flash.from;
+      const flashDuration =
+        Math.random() * (flash.to - flash.from) + flash.from;
 
-            if (item.el) {
-                const setter = gsap.quickSetter(item.el, "animation-duration");
-                setter(`${flashDuration}ms`);
-            }
+      if (item.el) {
+        const setter = gsap.quickSetter(item.el, "animation-duration");
+        setter(`${flashDuration}ms`);
+      }
 
-            runScrambleLoop(item.state, item.el);
+      runScrambleLoop(item.state, item.el);
 
-            const timer = setTimeout(() => {
-                item.state.isActive = false;
-                if (item.el) item.el.innerText = item.state.originalChar;
-            }, scrambleTime);
+      const timer = setTimeout(() => {
+        item.state.isActive = false;
+        if (item.el) item.el.innerText = item.state.originalChar;
+      }, scrambleTime);
 
-            timeouts.push(timer);
-        }
-    };
+      timeouts.push(timer);
+    }
+  };
 
-    return {
-        launchWriteAnimation,
-        launchFlashAnimation,
-        clearTimeouts
-    };
+  return {
+    launchWriteAnimation,
+    launchFlashAnimation,
+    clearTimeouts,
+  };
 }

@@ -7,13 +7,13 @@ import { onMounted, onUnmounted, ref } from "vue";
 import gsap from "gsap";
 const { registerElement, unregisterElement } = useElementsRegistry();
 
-const myId = 'experience';
+const myId = "experience";
 const jobEl = ref(null);
 const eduEl = ref(null);
 
 const props = defineProps({
   data: { type: Object, required: true },
-  lang: { type: String, required: false }
+  lang: { type: String, required: false },
 });
 
 const years = [2021, 2022, 2023, 2024, 2025, 2026];
@@ -21,8 +21,7 @@ const years = [2021, 2022, 2023, 2024, 2025, 2026];
 const animateExperience = (containerEl) => {
   fadeIn(containerEl, 1.5, 0, 0, 0);
 
-
-  if (jobEl.value) fadeIn(jobEl.value, 1, 1.5 , -40, -40);
+  if (jobEl.value) fadeIn(jobEl.value, 1, 1.5, -40, -40);
   if (eduEl.value) fadeIn(eduEl.value, 1, 1, -40, 40);
 };
 
@@ -40,10 +39,10 @@ onUnmounted(() => {
 
 <template>
   <ScrollBevelContainer
-      :tracked="false"
-      :id="myId"
-      v-on-enter="animateExperience"
-      class="js-hidden"
+    :tracked="false"
+    :id="myId"
+    v-on-enter="animateExperience"
+    class="js-hidden"
   >
     <ScrambleText class="mb-20" tag="h2" :text="data.heading"></ScrambleText>
 
@@ -55,13 +54,17 @@ onUnmounted(() => {
 
         <div ref="jobEl" class="timeline__job js-hidden">
           <div class="relative">
-            <span><span>{{ data.work_heading }}</span></span>
+            <span
+              ><span>{{ data.work_heading }}</span></span
+            >
           </div>
         </div>
 
         <div ref="eduEl" class="timeline__education js-hidden">
           <div class="relative">
-            <span><span>{{ data.education_heading }}</span></span>
+            <span
+              ><span>{{ data.education_heading }}</span></span
+            >
           </div>
         </div>
       </div>
@@ -69,11 +72,19 @@ onUnmounted(() => {
 
     <div class="experience-description">
       <div>
-        <ScrambleText class="mb-10" :text="data.work_heading" tag="h3"></ScrambleText>
+        <ScrambleText
+          class="mb-10"
+          :text="data.work_heading"
+          tag="h3"
+        ></ScrambleText>
         <div class="experience-item" v-html="data.work_description"></div>
       </div>
       <div>
-        <ScrambleText class="mb-10" :text="data.education_heading" tag="h3"></ScrambleText>
+        <ScrambleText
+          class="mb-10"
+          :text="data.education_heading"
+          tag="h3"
+        ></ScrambleText>
         <div class="experience-item" v-html="data.education_description"></div>
       </div>
     </div>
@@ -89,7 +100,7 @@ onUnmounted(() => {
   gap: 10px;
 
   &::before {
-    content: '';
+    content: "";
     width: 20px;
     height: 20px;
     position: absolute;
@@ -126,7 +137,7 @@ onUnmounted(() => {
   margin-bottom: 55px;
 
   &::before {
-    content: '';
+    content: "";
     width: 100%;
     top: 50%;
     border-bottom: 2px solid white;
@@ -157,7 +168,8 @@ onUnmounted(() => {
     }
   }
 
-  &__job, &__education {
+  &__job,
+  &__education {
     position: absolute;
     height: 10px;
     border-left: 3px solid var(--main-color);
@@ -176,7 +188,7 @@ onUnmounted(() => {
 
       &::before {
         position: absolute;
-        content: '';
+        content: "";
         left: 50%;
         border-left: 3px solid var(--main-color);
         height: 10px;
@@ -191,7 +203,7 @@ onUnmounted(() => {
   &__job {
     left: 43.04%;
     border-top: 3px solid var(--main-color);
-    right: 4.20%;
+    right: 4.2%;
     top: 0;
 
     .relative {
@@ -208,7 +220,7 @@ onUnmounted(() => {
   }
 
   &__education {
-    left: 13.90%;
+    left: 13.9%;
     right: 20%;
     border-bottom: 3px solid var(--main-color);
     bottom: 0;

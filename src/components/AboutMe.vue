@@ -3,22 +3,22 @@ import ScrollBevelContainer from "../components/Partials/ScrollBevelContainer.vu
 import CustomButton from "./Partials/CustomButton.vue";
 import ScrambleText from "./Partials/ScrambleText.vue";
 import BevelBox from "./Partials/BevelBox.vue";
-import { useElementsRegistry} from "../utils/useRegistry.js";
+import { useElementsRegistry } from "../utils/useRegistry.js";
 const { registerElement, unregisterElement } = useElementsRegistry();
 import { onMounted, onUnmounted } from "vue";
 
-const myId = 'about-me';
+const myId = "about-me";
 
 const props = defineProps({
   data: {
     type: Object,
-    required: true
+    required: true,
   },
   lang: {
     type: String,
-    required: false
-  }
-})
+    required: false,
+  },
+});
 
 onMounted(() => {
   registerElement({
@@ -31,30 +31,37 @@ onUnmounted(() => {
   unregisterElement(myId);
 });
 
-const buttonText = props.lang === 'pl' ? 'Napisz do mnie' : 'Contact me';
-
+const buttonText = props.lang === "pl" ? "Napisz do mnie" : "Contact me";
 </script>
 
 <template>
   <ScrollBevelContainer :id="myId">
-    <ScrambleText class="mb-15" tag="h2" mode="write" :text="data.heading"></ScrambleText>
+    <ScrambleText
+      class="mb-15"
+      tag="h2"
+      mode="write"
+      :text="data.heading"
+    ></ScrambleText>
     <div class="about-me-1">
       <div class="about-me-1__content">
-        <div class="text-lg text-justify ">{{data.text}}</div>
+        <div class="text-lg text-justify">{{ data.text }}</div>
       </div>
       <BevelBox class="about-me-1__img">
-        <img :src="data.my_photo" :alt="data.my_photo_alt">
+        <img :src="data.my_photo" :alt="data.my_photo_alt" />
       </BevelBox>
     </div>
     <div class="about-me-2">
-      <CustomButton :text="buttonText" target="_self" link="mailto:jmonka.kontakt@gmail.com"></CustomButton>
+      <CustomButton
+        :text="buttonText"
+        target="_self"
+        link="mailto:jmonka.kontakt@gmail.com"
+      ></CustomButton>
       <div class="text-lg">jmonka.kontakt@gmail.com</div>
     </div>
   </ScrollBevelContainer>
 </template>
 
 <style scoped lang="scss">
-
 .about-me-2 {
   display: flex;
   justify-content: start;
@@ -90,5 +97,4 @@ const buttonText = props.lang === 'pl' ? 'Napisz do mnie' : 'Contact me';
     }
   }
 }
-
 </style>

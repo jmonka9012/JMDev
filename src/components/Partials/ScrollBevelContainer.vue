@@ -10,13 +10,13 @@ const props = defineProps({
   blur: {
     type: Boolean,
     required: false,
-    default: true
+    default: true,
   },
   tracked: {
     type: Boolean,
     required: false,
-    default: false
-  }
+    default: false,
+  },
 });
 
 const updateRatio = () => {
@@ -30,11 +30,11 @@ const updateRatio = () => {
 
   const viewportCenter = windowHeight / 2;
 
-  const containerCenter = rect.top + (rect.height / 2);
+  const containerCenter = rect.top + rect.height / 2;
 
   const distance = Math.abs(viewportCenter - containerCenter);
 
-  scrollRatio.value = (distance / windowHeight*1.5) * 100;
+  scrollRatio.value = (distance / windowHeight) * 1.5 * 100;
 
   ticking = false;
 };
@@ -47,22 +47,30 @@ const onScroll = () => {
 };
 
 onMounted(() => {
-  window.addEventListener('scroll', onScroll, { passive: true });
-  window.addEventListener('resize', onScroll, { passive: true });
+  window.addEventListener("scroll", onScroll, { passive: true });
+  window.addEventListener("resize", onScroll, { passive: true });
 
   updateRatio();
 });
 
 onUnmounted(() => {
-  window.removeEventListener('scroll', onScroll);
-  window.removeEventListener('resize', onScroll);
+  window.removeEventListener("scroll", onScroll);
+  window.removeEventListener("resize", onScroll);
 });
 </script>
 
 <template>
-  <div ref="scrollContainer" :data-ascii-tracked="tracked ? 'filled-box' : undefined" class="container scroll-bevel" :class="{ 'bg-blur': blur }">
+  <div
+    ref="scrollContainer"
+    :data-ascii-tracked="tracked ? 'filled-box' : undefined"
+    class="container scroll-bevel"
+    :class="{ 'bg-blur': blur }"
+  >
     <CursorBevelBox :scroll-ratio="scrollRatio"></CursorBevelBox>
-    <CursorBevelBox corner="right bottom" :scroll-ratio="scrollRatio"></CursorBevelBox>
+    <CursorBevelBox
+      corner="right bottom"
+      :scroll-ratio="scrollRatio"
+    ></CursorBevelBox>
     <slot></slot>
   </div>
 </template>

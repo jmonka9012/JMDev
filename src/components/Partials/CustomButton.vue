@@ -1,12 +1,12 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted } from "vue";
 import BevelBox from "./BevelBox.vue";
 import { useScramble } from "../../utils/useScramble.js";
 
 const props = defineProps({
   text: {
     type: String,
-    required: true
+    required: true,
   },
   link: {
     type: String,
@@ -15,8 +15,8 @@ const props = defineProps({
   target: {
     type: String,
     required: false,
-    default: '_blank'
-  }
+    default: "_blank",
+  },
 });
 
 const letters = ref([]);
@@ -27,11 +27,11 @@ const handleHover = () => {
 };
 
 onMounted(() => {
-  letters.value = Array.from(props.text).map(char => ({
+  letters.value = Array.from(props.text).map((char) => ({
     original: char,
     state: { isActive: false, originalChar: char },
     el: null,
-    visible: true
+    visible: true,
   }));
 });
 
@@ -41,24 +41,25 @@ onUnmounted(() => {
 </script>
 
 <template>
-
   <a :href="link" :target="target" class="btn" @mouseenter="handleHover">
     <div class="btn__inner">
       <span class="scramble-wrapper">
-
         <span class="ghost-text">{{ text }}</span>
 
         <span class="animating-text">
           <span
-              v-for="(item, index) in letters"
-              :key="index"
-              :ref="el => { if (el) item.el = el }"
-              class="letter"
+            v-for="(item, index) in letters"
+            :key="index"
+            :ref="
+              (el) => {
+                if (el) item.el = el;
+              }
+            "
+            class="letter"
           >
             {{ item.original }}
           </span>
         </span>
-
       </span>
     </div>
   </a>
@@ -69,11 +70,11 @@ onUnmounted(() => {
   position: relative;
 
   &::before {
-    content: '';
+    content: "";
     position: absolute;
     inset: 11px;
-    background-color: transparent; // Bazowy stan
-    transition: background-color 0.3s ease; // Złagodzi zniknięcie przy zjechaniu myszką!
+    background-color: transparent; // Base state.
+    transition: background-color 0.3s ease; // Smooth the fade-out when the pointer leaves.
   }
 
   &:hover {
@@ -87,7 +88,7 @@ onUnmounted(() => {
     position: relative;
     color: #fff;
     text-transform: uppercase;
-    transition: color 0.3s ease; // Złagodzi powrót do bieli po zjechaniu myszką
+    transition: color 0.3s ease; // Smooth the return to white when the pointer leaves.
     font-size: 18px;
 
     &:hover {
@@ -103,8 +104,9 @@ onUnmounted(() => {
       }
     }
 
-    &::before, &::after {
-      content: '';
+    &::before,
+    &::after {
+      content: "";
       position: absolute;
       width: 20px;
       height: 20px;
@@ -113,25 +115,30 @@ onUnmounted(() => {
     }
 
     &::before {
-      top: 4px; left: 4px;
-      border-right: none; border-bottom: none;
+      top: 4px;
+      left: 4px;
+      border-right: none;
+      border-bottom: none;
       border-color: #fff;
     }
 
     &::after {
-      bottom: 4px; right: 4px;
-      border-left: none; border-top: none;
+      bottom: 4px;
+      right: 4px;
+      border-left: none;
+      border-top: none;
       border-color: var(--main-color);
     }
 
-    &:hover::before, &:hover::after {
+    &:hover::before,
+    &:hover::after {
       width: calc(100% - 20px);
       height: calc(100% - 20px);
     }
   }
 }
 
-// Reszta kodu (scramble-wrapper, ghost-text itp.) bez zmian!
+// The remaining code (scramble-wrapper, ghost-text, etc.) remains unchanged.
 .scramble-wrapper {
   display: inline-flex;
   align-items: center;
@@ -171,11 +178,13 @@ onUnmounted(() => {
   font-size: 24px;
   position: relative;
   text-transform: uppercase;
-  transition: background-color 0.3s ease-out, color 0.3s ease-out;
+  transition:
+    background-color 0.3s ease-out,
+    color 0.3s ease-out;
   justify-content: center;
 
   &:hover {
-    animation: fade-out-sequence .7s ease forwards;
+    animation: fade-out-sequence 0.7s ease forwards;
   }
 }
 </style>

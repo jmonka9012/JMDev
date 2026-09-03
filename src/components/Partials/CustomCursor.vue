@@ -1,9 +1,9 @@
 <script setup>
-import {inject, onMounted, onUnmounted, ref} from 'vue';
+import { inject, onMounted, onUnmounted, ref } from "vue";
 
 const cursorDot = ref(null);
 const isVisible = ref(false);
-const isTouch = inject('isTouch'); // Zakładam, że to reaktywny ref (np. z useTouch)
+const isTouch = inject("isTouch"); // Assumes this is a reactive ref (for example, from useTouch).
 
 onMounted(() => {
   if (!cursorDot.value) return;
@@ -36,19 +36,19 @@ onMounted(() => {
     }
   };
 
-  window.addEventListener('mousemove', moveCursor, { capture: true });
+  window.addEventListener("mousemove", moveCursor, { capture: true });
 
   onUnmounted(() => {
-    window.removeEventListener('mousemove', moveCursor, { capture: true });
+    window.removeEventListener("mousemove", moveCursor, { capture: true });
   });
 });
 </script>
 
 <template>
   <div
-      ref="cursorDot"
-      class="custom-cursor-dot"
-      :class="{ 'is-active': isVisible && !isTouch }"
+    ref="cursorDot"
+    class="custom-cursor-dot"
+    :class="{ 'is-active': isVisible && !isTouch }"
   ></div>
 </template>
 

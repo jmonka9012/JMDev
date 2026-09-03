@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, nextTick, onUnmounted } from 'vue'
+import { ref, onMounted, nextTick, onUnmounted } from "vue";
 import { runScrambleLoop } from "../../utils/useScramble.js";
 import { randomArrayItem } from "../../utils/randomArrayItem.js";
 import { useVisibility } from "../../utils/useVisibility.js";
@@ -12,19 +12,21 @@ const props = defineProps({
   suffixes: { type: Array, required: true },
   scrambleTime: { type: Number, default: 500 },
   interval: { type: Number, default: 3000 },
-})
+});
 
-let lastWord = '';
-const appendableStrings = props.suffixes ? props.suffixes : [' <3', " :)", "!", "."];
+let lastWord = "";
+const appendableStrings = props.suffixes
+  ? props.suffixes
+  : [" <3", " :)", "!", "."];
 const currentLetters = ref([]);
 const isWaiting = ref(false);
 
-const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const animateSequence = async (chars) => {
   const startIndex = currentLetters.value.length;
 
-  const newItems = Array.from(chars).map(char => ({
+  const newItems = Array.from(chars).map((char) => ({
     state: { isActive: true, originalChar: char },
     el: null,
     visible: false,
@@ -85,7 +87,7 @@ const cycleWords = async () => {
 
       await writeWord(word);
 
-      isWaiting.value = true; // Flaga dla mrugania kursora
+      isWaiting.value = true; // Flag used for cursor blinking.
       await sleep(props.interval);
       isWaiting.value = false;
 
@@ -109,15 +111,19 @@ onUnmounted(() => {
   <div ref="container" class="scramble-container">
     <div class="scramble-group">
       <span
-          v-for="(item, index) in currentLetters"
-          :key="index"
-          :ref="el => { if (el) item.el = el }"
-          class="letter"
-          :class="{ 'is-visible': item.visible }"
+        v-for="(item, index) in currentLetters"
+        :key="index"
+        :ref="
+          (el) => {
+            if (el) item.el = el;
+          }
+        "
+        class="letter"
+        :class="{ 'is-visible': item.visible }"
       >
         &nbsp;
       </span>
-      <span class="writing-cursor" :class="{ 'blinking': isWaiting }"></span>
+      <span class="writing-cursor" :class="{ blinking: isWaiting }"></span>
     </div>
   </div>
 </template>
@@ -130,13 +136,13 @@ onUnmounted(() => {
 }
 
 .scramble-group {
-  display: inline-flex; // Flexbox sprawia, że kursor nie skacze
+  display: inline-flex; // Flexbox prevents the cursor from jumping.
   align-items: center;
   position: relative;
   min-height: 1.2em;
 
   .letter {
-    display: none; // Ukryty, dopóki nie zacznie się animować
+    display: none; // Hidden until the animation starts.
     color: white;
     min-width: 1ch;
     white-space: pre;
@@ -149,8 +155,13 @@ onUnmounted(() => {
 }
 
 @keyframes cursor-blink {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0; }
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0;
+  }
 }
 
 .writing-cursor {
