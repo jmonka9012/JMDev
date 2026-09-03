@@ -96,13 +96,12 @@ onUnmounted(() => {
 
 <template>
   <div
-      ref="scrollContainer"
-      :data-ascii-tracked="tracked ? 'filled-box' : undefined"
-      class="container scroll-bevel"
-      :class="{ 'bg-blur': blur }"
+    ref="scrollContainer"
+    :data-ascii-tracked="tracked ? 'filled-box' : undefined"
+    class="container scroll-bevel"
+    :class="{ 'bg-blur': blur }"
   >
     <template v-if="isReady">
-
       <template v-if="isMobile">
         <div class="scroll-bevel__static-frame" aria-hidden="true"></div>
       </template>
@@ -111,7 +110,6 @@ onUnmounted(() => {
         <CursorBevelBox :scroll-ratio="scrollRatio" />
         <CursorBevelBox corner="right bottom" :scroll-ratio="scrollRatio" />
       </template>
-
     </template>
 
     <div class="scroll-bevel__content">

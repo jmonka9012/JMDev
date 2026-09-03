@@ -3,7 +3,9 @@
 A statically generated portfolio built with Vue 3, ViteSSG, and GSAP, featuring custom WebGL shaders and smooth scrolling.
 
 ## Overview
-This project serves as both a personal portfolio and a technical sandbox. It utilizes a **Jamstack architecture**, decoupling the frontend from a **Headless WordPress** backend. Content is fetched at build-time to generate a blazing-fast, SEO-optimized static site. The interface is heavily animated using GSAP and features custom interactive WebGL ASCII art rendering.
+This project serves as both a personal portfolio and a technical sandbox. It utilizes a **Jamstack architecture**, decoupling the frontend from a **Headless WordPress** backend. Content is fetched at build-time to generate a quick static site. The interface is heavily animated using GSAP and features custom interactive WebGL ASCII art rendering.
+
+This is my first project using shaders and WebGL, probably got a little too ambitious with it and some components. Site is best experienced with decent machine. But! I'd rather make mistakes I can learn from than take the easy way out :). Work in progress...
 
 ## Tech Stack
 
