@@ -1,13 +1,20 @@
 import { nextTick } from 'vue';
 import { gsap } from "gsap";
-import { runScrambleLoop } from "./scrambleLetter.js"; // Zakładam, że oba pliki są w folderze utils
+import {ASCII_STRING_NO_JP} from "../utils/asciiConstants.js";
 
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+export const runScrambleLoop = (state, element) => {
+    if (!state.isActive || !element) return;
+
+    element.textContent = ASCII_STRING_NO_JP[Math.floor(Math.random() * ASCII_STRING_NO_JP.length)];
+
+    requestAnimationFrame(() => runScrambleLoop(state, element));
+}
 
 export function useScramble() {
     let timeouts = [];
 
-    // Funkcja czyszcząca timery (przydatna przy unmount lub restarcie animacji)
     const clearTimeouts = () => {
         timeouts.forEach(clearTimeout);
         timeouts = [];

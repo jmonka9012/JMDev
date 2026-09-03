@@ -45,11 +45,6 @@ export const createApp = ViteSSG(
             const isTouch = ref(typeof window !== 'undefined' ? window.matchMedia("(pointer: coarse)").matches : false);
             app.provide('isTouch', isTouch);
 
-            window.asciiString = ".,' -:xlj!=o;JLI>+<^X34#ahgurefO/A8H@$%ハツソメルれけサナモオきほまねたぬあお終ボをぽふんゆいうえかが";
-            window.asciiStringNoJp = "1234567890qwertyuiopasdfghjklzxcvbnm!@#$%^&*()+<>/'[]{}AHXOJLI=:;.,-`";
-
-            let isInitialLoad = true;
-
             console.log(router.getRoutes());
         }
     }

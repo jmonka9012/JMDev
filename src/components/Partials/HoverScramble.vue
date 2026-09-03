@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
-import { runScrambleLoop } from "../../utils/scrambleLetter.js";
+import { runScrambleLoop } from "../../utils/useScramble.js";
 
 const props = defineProps({
   text: { type: String, default: "" }

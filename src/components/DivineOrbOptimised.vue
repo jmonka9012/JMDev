@@ -8,6 +8,8 @@ const lenis = inject('lenis');
 const isTouch = inject('isTouch');
 const touchPos = inject('touchPos');
 
+import {ASCII_STRING_NO_JP} from "../utils/asciiConstants.js";
+
 let splitAscii = rawAscii.split('\n');
 
 splitAscii.forEach((line, i) => {
@@ -60,10 +62,7 @@ for (const key in charMap) {
 let pageDelta = 0;
 let pageVelocity = 0;
 
-// const chars = "#@8$%#A8HhaXx34fO/#x+X34#ahgurex>+<=^x>+<=^:;!jJLlI=:xlj!=o`.,'-";
-const uniqueChars = [...new Set(asciiStringNoJp.split(""))].join("");
-
-// console.log(`kropka: ${uniqueChars.indexOf('@')}`)
+const uniqueChars = [...new Set(ASCII_STRING_NO_JP.split(""))].join("");
 
 let substituteCharTextureData = [];
 let longestSubstitute = 0;
@@ -148,7 +147,7 @@ const updateTrackedElements = () => {
     const placement = el.dataset.asciiBorderPlacement || 'inside';
     return {
       el: el,
-      ascii: el.dataset.asciiTracked, // Przechowa ciąg "border-box" lub "filled-box"
+      ascii: el.dataset.asciiTracked, // Stores "border-box" or "filled-box"
       borderWidthX: borderWidthX,
       borderWidthY: borderWidthY,
       placement: placement,
@@ -217,7 +216,7 @@ const sketch = (p) => {
     let imgStartCol = Math.floor((p.width / 2 + imgOffsetX) / pastedCharW);
     let imgStartRow = Math.floor((p.height / 2 - estimHeight / 2) / pastedCharH);
 
-    // Wypalanie Orba
+    // Burn ASCII image into data texture
     for (let iY = 0; iY < splitAscii.length; iY++) {
       const line = splitAscii[iY];
       const realRow = imgStartRow + iY;
@@ -238,13 +237,13 @@ const sketch = (p) => {
 
           bgDataTexture.pixels[index + 0] = uniqueChars.indexOf(char);
           bgDataTexture.pixels[index + 1] = colorIndex;
-          bgDataTexture.pixels[index + 2] = 255;  // kanał blue obrazek
+          bgDataTexture.pixels[index + 2] = 255;  // BLUE = 255 - Image
           bgDataTexture.pixels[index + 3] = 255;
         }
       }
     }
 
-      // RAMKI I WYPEŁNIENIA
+      // Borders and fills
     if (trackedElements && trackedElements.value) {
       trackedElements.value.forEach(box => {
         const startCol = Math.floor(box.vertices.topLeft.x / pastedCharW);
@@ -284,7 +283,7 @@ const sketch = (p) => {
           innerEndRow = endRow - wy;
         }
 
-        // --- DECOUPLING (ROZDZIELENIE KANAŁÓW BLUE) ---
+        // DECOUPLING
         const BORDER_BOX_BLUE = 150;
         const FILLED_BOX_BLUE = 160;
         const BUTTON_BOX_BLUE = 170;
@@ -299,16 +298,13 @@ const sketch = (p) => {
           }
         };
 
-        // Warunek rozdzielający logikę rysowania struktur
         if (box.ascii === 'filled-box') {
-          // Wypełniamy cały obszar od krawędzi do krawędzi
           for (let r = outerStartRow; r <= outerEndRow; r++) {
             for (let c = outerStartCol; c <= outerEndCol; c++) {
               drawPixel(c, r, FILLED_BOX_BLUE);
             }
           }
         } else if (box.ascii === 'border-box') {
-          // Klasyczna ramka z wyciętym środkiem
           for (let r = outerStartRow; r <= outerEndRow; r++) {
             for (let c = outerStartCol; c <= outerEndCol; c++) {
               if (r >= innerStartRow && r <= innerEndRow && c >= innerStartCol && c <= innerEndCol) {
@@ -328,7 +324,7 @@ const sketch = (p) => {
     }    bgDataTexture.updatePixels();
     bgDataTexture.drawingContext.imageSmoothingEnabled = false;
 
-    // Budowanie wielkiego prostokąta dopasowanego do nowego okna
+    // Build main container
     bgGeometry = p.buildGeometry(() => {
       p.beginShape(p.QUADS);
       const startX = -p.width / 2;
@@ -413,7 +409,6 @@ const sketch = (p) => {
     substituteTexture.updatePixels();
     substituteTexture.drawingContext.imageSmoothingEnabled = false;
 
-    // Inicjalizacja pierwszej siatki tła
     initGridAndTexture();
 
     bgShader = p.createShader(bgVertShader, bgFragShader);
@@ -430,7 +425,7 @@ const sketch = (p) => {
     // if (p.frameCount % 8 === 0) lines.push(generateLine(2, "down"));
     if (p.frameCount % framesForLine === 0) lines.push(generateLine(2, "down"));
 
-    // 1. ZABIJANIE I CZYSZCZENIE (Tworzymy nową tablicę ocalałych linii)
+    // Refresh falling lines state
     survivingLines = [];
 
     for (let i = 0; i < lines.length; i++) {
@@ -445,17 +440,16 @@ const sketch = (p) => {
             const index = (row * bgCols + col) * 4;
             if ((bgDataTexture.pixels[index + 2] !== 255) &&
                 (bgDataTexture.pixels[index + 2] !== 150) &&
-                (bgDataTexture.pixels[index + 2] !== 140)) { // (Dodane zabezpieczenie 140!)
+                (bgDataTexture.pixels[index + 2] !== 140)) { // Blue = 140 - line
               bgDataTexture.pixels[index + 3] = 0;
             }
           }
         }
       } else {
-        survivingLines.push(l); // Jeśli linia żyje, zapisz ją do nowej tablicy
+        survivingLines.push(l);
       }
     }
 
-    // Nadpisujemy starą tablicę nową
     lines = survivingLines;
 
     for (let i = 0; i < lines.length; i++) {
@@ -559,7 +553,7 @@ const sketch = (p) => {
     p.model(bgGeometry);
     p.pop();
 
-    // --- DEBUG: PODGLĄD ATLASU ---
+    // --- DEBUG: ATLAS ---
     // p.resetShader();
     // p.push();
     // p.translate(-p.width / 2, -p.height / 2, 1);

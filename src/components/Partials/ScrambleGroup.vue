@@ -1,6 +1,6 @@
 <script setup>
 import { ref, onMounted, nextTick, onUnmounted } from 'vue'
-import { runScrambleLoop } from "../../utils/scrambleLetter.js";
+import { runScrambleLoop } from "../../utils/useScramble.js";
 import { randomArrayItem } from "../../utils/randomArrayItem.js";
 import { useVisibility } from "../../utils/useVisibility.js";
 
