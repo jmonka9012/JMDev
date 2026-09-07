@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue";
+import { computed, ref, watch, onMounted, onUnmounted } from "vue";
 import { useElementsRegistry } from "../utils/useRegistry.js";
 const { registerElement, unregisterElement } = useElementsRegistry();
 import { Swiper, SwiperSlide } from "swiper/vue";
@@ -13,6 +13,7 @@ import {
 } from "swiper/modules";
 import { useVisibility } from "../utils/useVisibility.js";
 import { refreshState } from "../utils/refreshState.js";
+import { motionPaused } from "../utils/motionPreference.js";
 
 import "swiper/css";
 import "swiper/css/pagination";
@@ -47,6 +48,30 @@ const activeIndex = ref(0);
 
 const sliderContainer = ref(null);
 const isSliderVisible = useVisibility(sliderContainer);
+const innerSwipers = new Set();
+
+const innerAutoplay = computed(() => ({
+  delay: motionPaused.value ? 3500 : 300,
+  disableOnInteraction: false,
+  pauseOnMouseEnter: true,
+}));
+
+const onInnerSwiperInit = (swiper) => {
+  innerSwipers.add(swiper);
+};
+
+watch(motionPaused, (isPaused) => {
+  const delay = isPaused ? 3500 : 300;
+
+  innerSwipers.forEach((swiper) => {
+    if (swiper.destroyed || !swiper.params.autoplay) return;
+
+    swiper.params.autoplay.delay = delay;
+    swiper.originalParams.autoplay.delay = delay;
+    swiper.autoplay.stop();
+    swiper.autoplay.start();
+  });
+});
 
 const tryPlayAnimation = () => {
   if (scrambleRefs.value[activeIndex.value]) {
@@ -75,6 +100,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   unregisterElement(myId);
+  innerSwipers.clear();
 });
 
 const buttonText = props.lang === "pl" ? "zobacz" : "view";
@@ -142,17 +168,14 @@ const buttonText = props.lang === "pl" ? "zobacz" : "view";
                 <div class="project__right">
                   <swiper
                     :allow-touch-move="false"
-                    :autoplay="{
-                      delay: 300,
-                      disableOnInteraction: false,
-                      pauseOnMouseEnter: true,
-                    }"
+                    :autoplay="innerAutoplay"
                     :loop="true"
                     :modules="[EffectCube, Autoplay]"
                     :nested="true"
                     :speed="2000"
                     class="inner-swiper h-full"
                     effect="cube"
+                    @swiper="onInnerSwiperInit"
                     @after-init="refreshState"
                   >
                     <swiper-slide class="h-full">
