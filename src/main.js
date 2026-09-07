@@ -8,6 +8,7 @@ import { vSvgInject } from "./utils/svgInjectDirective.js";
 import { vOnEnter } from "./utils/onEnterDirective.js";
 import * as animations from "./utils/animations.js";
 import { ref } from "vue";
+import { initializeMotionPreference } from "./utils/motionPreference.js";
 
 const routes = [
   { path: "/", component: PageResolver },
@@ -26,6 +27,8 @@ export const createApp = ViteSSG(
     app.directive("on-enter", vOnEnter);
     app.config.globalProperties.$anim = animations;
     if (isClient) {
+      initializeMotionPreference();
+
       const lenis = new Lenis({ autoRaf: false });
       lenis.on("scroll", ScrollTrigger.update);
       if (!window._lenisTicker) {

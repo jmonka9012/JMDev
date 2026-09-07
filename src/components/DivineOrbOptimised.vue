@@ -1,5 +1,6 @@
 <script setup>
 import { onMounted, ref, onUnmounted, inject } from "vue";
+import { motionPaused } from "../utils/motionPreference.js";
 import rawAscii from "./DivineOrb.txt?raw";
 import bgVertShader from "./bgAscii.vert?raw";
 import bgFragShader from "./bgAscii.frag?raw";
@@ -444,7 +445,9 @@ const sketch = (p) => {
   p.draw = () => {
     // line ratio
     // if (p.frameCount % 8 === 0) lines.push(generateLine(2, "down"));
-    if (p.frameCount % framesForLine === 0) lines.push(generateLine(2, "down"));
+    if (!motionPaused.value && p.frameCount % framesForLine === 0) {
+      lines.push(generateLine(2, "down"));
+    }
 
     // Refresh falling lines state
     survivingLines = [];

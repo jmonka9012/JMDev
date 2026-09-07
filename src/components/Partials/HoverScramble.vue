@@ -1,6 +1,7 @@
 <script setup>
-import { onMounted, onUnmounted, ref } from "vue";
+import { onMounted, onUnmounted, ref, watch } from "vue";
 import { runScrambleLoop } from "../../utils/useScramble.js";
+import { motionPaused } from "../../utils/motionPreference.js";
 
 const props = defineProps({
   text: { type: String, default: "" },
@@ -21,8 +22,18 @@ const letters = ref(
 );
 const isEnhanced = ref(false);
 
+const stopScrambling = () => {
+  letters.value.forEach((item) => {
+    item.state.isActive = false;
+    item.hasInteracted = false;
+    if (item.stopTimeout) clearTimeout(item.stopTimeout);
+    item.stopTimeout = null;
+    if (item.el) item.el.textContent = item.state.originalChar;
+  });
+};
+
 const handleMouseEnter = (item) => {
-  if (item.isWhitespace) return;
+  if (item.isWhitespace || motionPaused.value) return;
 
   item.hasInteracted = true;
 
@@ -51,22 +62,26 @@ onMounted(() => {
   isEnhanced.value = true;
 });
 
+watch(motionPaused, (isPaused) => {
+  if (isPaused) stopScrambling();
+});
+
 onUnmounted(() => {
-  letters.value.forEach((item) => {
-    item.state.isActive = false;
-    if (item.stopTimeout) clearTimeout(item.stopTimeout);
-  });
+  stopScrambling();
 });
 </script>
 
 <template>
-  <span class="hover-scramble" :class="{ 'is-enhanced': isEnhanced }">
+  <span
+    class="hover-scramble"
+    :class="{ 'is-enhanced': isEnhanced && !motionPaused }"
+  >
     <span class="hover-scramble__text">
       <template v-if="text">{{ text }}</template>
       <slot v-else />
     </span>
     <span
-      v-if="text && isEnhanced"
+      v-if="text && isEnhanced && !motionPaused"
       class="hover-scramble__animation"
       aria-hidden="true"
     >

@@ -5,6 +5,7 @@ const { registerElement, unregisterElement } = useElementsRegistry();
 import { useVisibility } from "../utils/useVisibility.js";
 import ScrollBevelContainer from "../components/Partials/ScrollBevelContainer.vue";
 import ScrambleText from "./Partials/ScrambleText.vue";
+import { motionPaused } from "../utils/motionPreference.js";
 
 const myId = "technologies";
 
@@ -45,6 +46,7 @@ const glowIndexes = ref(new Set());
 
 let glowIntervalId = null;
 let glowTimeouts = [];
+let revealTimeouts = [];
 
 const clearGlowTimeouts = () => {
   glowTimeouts.forEach(clearTimeout);
@@ -57,8 +59,20 @@ const setTechTitleRef = (el) => {
   }
 };
 
+const clearRevealTimeouts = () => {
+  revealTimeouts.forEach(clearTimeout);
+  revealTimeouts = [];
+};
+
+const revealAllTechnologies = () => {
+  activeSvgIndexes.value = new Set(
+    Array.from({ length: props.technologies.length }, (_, index) => index),
+  );
+};
+
 // Choose and highlight a technology at random.
 const triggerRandomGlow = () => {
+  if (motionPaused.value) return;
   const count = techTitleRefs.value.length;
   if (count === 0) return;
 
@@ -86,7 +100,7 @@ const triggerRandomGlow = () => {
 };
 
 const startRandomGlowLoop = () => {
-  if (glowIntervalId) return;
+  if (glowIntervalId || motionPaused.value) return;
   triggerRandomGlow(); // Trigger the first one immediately.
   glowIntervalId = setInterval(triggerRandomGlow, props.glowInterval);
 };
@@ -103,27 +117,43 @@ const stopRandomGlowLoop = () => {
 const playTechTitles = async () => {
   await nextTick();
 
+  if (motionPaused.value) {
+    revealAllTechnologies();
+    return;
+  }
+
   techTitleRefs.value.forEach((comp, index) => {
-    setTimeout(() => {
+    const revealTimeout = setTimeout(() => {
+      if (motionPaused.value) return;
       comp.play();
       activeSvgIndexes.value.add(index);
     }, index * 150);
+    revealTimeouts.push(revealTimeout);
   });
 
   const revealDuration = techTitleRefs.value.length * 150 + 300; // 300 is the text icon scramble time.
-  setTimeout(startRandomGlowLoop, revealDuration);
+  revealTimeouts.push(setTimeout(startRandomGlowLoop, revealDuration));
 };
 
-watch(isVisible, (newVal) => {
-  if (newVal && !hasPlayed.value) {
-    hasPlayed.value = true;
-    playTechTitles();
-  } else if (newVal && hasPlayed.value) {
-    startRandomGlowLoop();
-  } else if (!newVal) {
-    stopRandomGlowLoop();
-  }
-});
+watch(
+  [isVisible, motionPaused],
+  ([newVisible, isPaused]) => {
+    if (isPaused) {
+      clearRevealTimeouts();
+      stopRandomGlowLoop();
+      revealAllTechnologies();
+      hasPlayed.value = true;
+    } else if (newVisible && !hasPlayed.value) {
+      hasPlayed.value = true;
+      playTechTitles();
+    } else if (newVisible && hasPlayed.value) {
+      startRandomGlowLoop();
+    } else if (!newVisible) {
+      stopRandomGlowLoop();
+    }
+  },
+  { immediate: true },
+);
 
 onMounted(() => {
   registerElement({
@@ -133,6 +163,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  clearRevealTimeouts();
   stopRandomGlowLoop();
   unregisterElement(myId);
 });

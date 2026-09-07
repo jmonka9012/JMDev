@@ -10,6 +10,7 @@ import {
   nextTick,
   watch,
 } from "vue";
+import { motionPaused } from "../../utils/motionPreference.js";
 
 const props = defineProps({
   corner: {
@@ -94,7 +95,12 @@ const updateDistance = (isInstant = false) => {
 
     gsap.to(bevelBox.value.$el, {
       clipPath: insetString,
-      duration: isInstant === true ? 0 : isScrollOverride ? 0.5 : 2,
+      duration:
+        motionPaused.value || isInstant === true
+          ? 0
+          : isScrollOverride
+            ? 0.5
+            : 2,
       ease: "power2.out",
       overwrite: "auto",
     });
@@ -133,6 +139,13 @@ watch(
     }
   },
 );
+
+watch(motionPaused, (isPaused) => {
+  if (!isPaused || !bevelBox.value?.$el) return;
+
+  gsap.killTweensOf(bevelBox.value.$el);
+  updateDistance(true);
+});
 
 onMounted(async () => {
   window.addEventListener("resize", updateDimensions);

@@ -34,6 +34,25 @@ body {
   color: #fff;
 }
 
+html.motion-paused *,
+html.motion-paused *::before,
+html.motion-paused *::after {
+  scroll-behavior: auto !important;
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html:not(.motion-running) *,
+  html:not(.motion-running) *::before,
+  html:not(.motion-running) *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
 *::selection {
   background-color: rgb(50, 255, 50);
 }

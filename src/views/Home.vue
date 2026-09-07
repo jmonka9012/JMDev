@@ -8,6 +8,7 @@ import Strengths from "../components/Strengths.vue";
 import Experience from "../components/Experience.vue";
 import PageHeader from "../components/PageHeader.vue";
 import Footer from "../components/Footer.vue";
+import MotionToggle from "../components/Partials/MotionToggle.vue";
 import { fadeIn } from "../utils/animations.js";
 
 import { getPageData } from "../utils/getData.js";
@@ -99,6 +100,7 @@ const fadeInPl = (el) => fadeIn(el, 1.5, 0, 0, 0);
 
 <template>
   <PageHeader :lang="lang" />
+  <MotionToggle :lang="lang" />
   <div class="page-content">
     <div v-if="isMounted" class="fixed" style="top: 0">
       <DivineOrbOptimised />

@@ -2,6 +2,7 @@
 import { nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { useVisibility } from "../../utils/useVisibility.js";
 import { useScramble } from "../../utils/useScramble.js";
+import { motionPaused } from "../../utils/motionPreference.js";
 
 const props = defineProps({
   tag: { type: String, default: "span" },
@@ -60,7 +61,26 @@ const finishAnimationAfter = (delay, run) => {
   }, delay);
 };
 
+const showStableText = () => {
+  animationRun += 1;
+  clearTimeout(animationEndTimeout);
+  clearTimeouts();
+  isAnimating.value = false;
+  hasAnimated.value = true;
+
+  letters.value.forEach((item) => {
+    item.state.isActive = false;
+    item.visible = true;
+    if (item.el) item.el.textContent = item.state.originalChar;
+  });
+};
+
 const triggerAnimation = async () => {
+  if (motionPaused.value) {
+    showStableText();
+    return;
+  }
+
   const run = ++animationRun;
   clearTimeouts();
   clearTimeout(animationEndTimeout);
@@ -76,10 +96,16 @@ const triggerAnimation = async () => {
     await launchWriteAnimation(letters, {
       scrambleTime: props.scrambleTime,
       stagger: props.stagger,
+      shouldStop: () => run !== animationRun,
     });
+    if (run !== animationRun) return;
     finishAnimationAfter(Math.max(props.scrambleTime - props.stagger, 0), run);
   } else if (props.mode === "flash") {
-    await launchFlashAnimation(letters, { flash: props.flash });
+    await launchFlashAnimation(letters, {
+      flash: props.flash,
+      shouldStop: () => run !== animationRun,
+    });
+    if (run !== animationRun) return;
     finishAnimationAfter(props.flash.to, run);
   } else {
     isAnimating.value = false;
@@ -96,6 +122,10 @@ watch(isVisible, (newVal) => {
   }
 });
 
+watch(motionPaused, (isPaused) => {
+  if (isPaused) showStableText();
+});
+
 defineExpose({
   play: triggerAnimation,
 });
@@ -105,12 +135,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
-  animationRun += 1;
-  clearTimeout(animationEndTimeout);
-  clearTimeouts();
-  letters.value.forEach((item) => {
-    item.state.isActive = false;
-  });
+  showStableText();
 });
 </script>
 

@@ -1,8 +1,9 @@
 <script setup>
-import { ref, onMounted, nextTick, onUnmounted } from "vue";
+import { nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { runScrambleLoop } from "../../utils/useScramble.js";
 import { randomArrayItem } from "../../utils/randomArrayItem.js";
 import { useVisibility } from "../../utils/useVisibility.js";
+import { motionPaused } from "../../utils/motionPreference.js";
 
 const container = ref();
 const isVisible = useVisibility(container);
@@ -28,10 +29,32 @@ const currentLetters = ref(
 );
 const isWaiting = ref(false);
 const isEnhanced = ref(false);
+let sequenceRun = 0;
+const stopTimeouts = new Set();
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const sequenceIsActive = (run) =>
+  isActive && run === sequenceRun && !motionPaused.value;
 
-const animateSequence = async (chars) => {
+const restoreStableText = () => {
+  sequenceRun += 1;
+  stopTimeouts.forEach(clearTimeout);
+  stopTimeouts.clear();
+  isWaiting.value = false;
+
+  currentLetters.value.forEach((item) => {
+    item.state.isActive = false;
+  });
+
+  currentLetters.value = Array.from(accessibleText).map((char) => ({
+    state: { isActive: false, originalChar: char },
+    el: null,
+    visible: true,
+  }));
+};
+
+const animateSequence = async (chars, run) => {
+  if (!sequenceIsActive(run)) return false;
   const startIndex = currentLetters.value.length;
 
   const newItems = Array.from(chars).map((char) => ({
@@ -45,46 +68,57 @@ const animateSequence = async (chars) => {
   await nextTick();
 
   for (let i = startIndex; i < currentLetters.value.length; i++) {
+    if (!sequenceIsActive(run)) return false;
     const item = currentLetters.value[i];
     if (!item) continue;
 
     item.visible = true;
     runScrambleLoop(item.state, item.el);
 
-    setTimeout(() => {
+    const stopTimeout = setTimeout(() => {
+      stopTimeouts.delete(stopTimeout);
       item.state.isActive = false;
       if (item.el) item.el.innerText = item.state.originalChar;
     }, props.scrambleTime);
+    stopTimeouts.add(stopTimeout);
 
     await sleep(70);
   }
+
+  return sequenceIsActive(run);
 };
 
-const writeWord = async (word) => {
+const writeWord = async (word, run) => {
   currentLetters.value = [];
 
-  await animateSequence(word);
+  if (!(await animateSequence(word, run))) return false;
 
   if (Math.random() > 0.5) {
     await sleep(1000);
+    if (!sequenceIsActive(run)) return false;
     const chosenString = randomArrayItem(appendableStrings);
-    await animateSequence(chosenString);
+    if (!(await animateSequence(chosenString, run))) return false;
   }
+
+  return true;
 };
 
-const deleteWord = async () => {
+const deleteWord = async (run) => {
   for (let i = currentLetters.value.length - 1; i >= 0; i--) {
     await sleep(40);
+    if (!sequenceIsActive(run)) return false;
     currentLetters.value[i].visible = false;
   }
   currentLetters.value = [];
+  return true;
 };
 
 let isActive;
 
 const cycleWords = async () => {
   while (isActive) {
-    if (isVisible.value) {
+    if (isVisible.value && !motionPaused.value) {
+      const run = sequenceRun;
       let word = randomArrayItem(props.words);
 
       while (props.words.length > 1 && word === lastWord) {
@@ -93,13 +127,14 @@ const cycleWords = async () => {
 
       lastWord = word;
 
-      await writeWord(word);
+      if (!(await writeWord(word, run))) continue;
 
       isWaiting.value = true; // Flag used for cursor blinking.
       await sleep(props.interval);
+      if (!sequenceIsActive(run)) continue;
       isWaiting.value = false;
 
-      await deleteWord();
+      await deleteWord(run);
     }
     await sleep(500);
   }
@@ -111,15 +146,26 @@ onMounted(() => {
   cycleWords();
 });
 
+watch(motionPaused, (isPaused) => {
+  if (isPaused) restoreStableText();
+});
+
 onUnmounted(() => {
   isActive = false;
+  restoreStableText();
 });
 </script>
 
 <template>
   <div ref="container" class="scramble-container">
-    <span :class="{ 'visually-hidden': isEnhanced }">{{ accessibleText }}</span>
-    <div v-if="isEnhanced" class="scramble-group" aria-hidden="true">
+    <span :class="{ 'visually-hidden': isEnhanced && !motionPaused }">
+      {{ accessibleText }}
+    </span>
+    <div
+      v-if="isEnhanced && !motionPaused"
+      class="scramble-group"
+      aria-hidden="true"
+    >
       <span
         v-for="(item, index) in currentLetters"
         :key="index"

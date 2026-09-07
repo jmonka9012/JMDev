@@ -1,4 +1,20 @@
 import { gsap } from "gsap";
+import { watch } from "vue";
+import { motionPaused } from "./motionPreference.js";
+
+const activeFadeAnimations = new Map();
+
+const finishFadeAnimations = () => {
+  activeFadeAnimations.forEach((element, tween) => {
+    tween.kill();
+    gsap.set(element, { opacity: 1, x: 0, y: 0 });
+  });
+  activeFadeAnimations.clear();
+};
+
+watch(motionPaused, (isPaused) => {
+  if (isPaused) finishFadeAnimations();
+});
 
 export const fadeIn = (
   element,
@@ -7,7 +23,13 @@ export const fadeIn = (
   fromX = 0,
   fromY = 0,
 ) => {
-  gsap.fromTo(
+  if (motionPaused.value) {
+    gsap.set(element, { opacity: 1, x: 0, y: 0 });
+    return null;
+  }
+
+  let tween;
+  tween = gsap.fromTo(
     element,
     {
       opacity: 0,
@@ -22,6 +44,11 @@ export const fadeIn = (
       duration: duration,
       ease: "power2.out",
       overwrite: "auto",
+      onComplete: () => activeFadeAnimations.delete(tween),
+      onInterrupt: () => activeFadeAnimations.delete(tween),
     },
   );
+
+  activeFadeAnimations.set(tween, element);
+  return tween;
 };

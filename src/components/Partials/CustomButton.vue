@@ -1,6 +1,7 @@
 <script setup>
-import { onMounted, onUnmounted, ref } from "vue";
+import { onMounted, onUnmounted, ref, watch } from "vue";
 import { useScramble } from "../../utils/useScramble.js";
+import { motionPaused } from "../../utils/motionPreference.js";
 
 const props = defineProps({
   text: {
@@ -29,7 +30,16 @@ const letters = ref(
 const isEnhanced = ref(false);
 const { launchFlashAnimation, clearTimeouts } = useScramble();
 
+const stopScrambling = () => {
+  clearTimeouts();
+  letters.value.forEach((item) => {
+    item.state.isActive = false;
+    if (item.el) item.el.textContent = item.state.originalChar;
+  });
+};
+
 const handleHover = () => {
+  if (motionPaused.value) return;
   launchFlashAnimation(letters, { flash: { from: 320, to: 500 } });
 };
 
@@ -37,11 +47,12 @@ onMounted(() => {
   isEnhanced.value = true;
 });
 
+watch(motionPaused, (isPaused) => {
+  if (isPaused) stopScrambling();
+});
+
 onUnmounted(() => {
-  clearTimeouts();
-  letters.value.forEach((item) => {
-    item.state.isActive = false;
-  });
+  stopScrambling();
 });
 </script>
 
@@ -50,14 +61,18 @@ onUnmounted(() => {
     :href="link"
     :target="target"
     class="btn"
-    :class="{ 'is-enhanced': isEnhanced }"
+    :class="{ 'is-enhanced': isEnhanced && !motionPaused }"
     @mouseenter="handleHover"
   >
     <div class="btn__inner">
       <span class="scramble-wrapper">
         <span class="button-text">{{ text }}</span>
 
-        <span v-if="isEnhanced" class="animating-text" aria-hidden="true">
+        <span
+          v-if="isEnhanced && !motionPaused"
+          class="animating-text"
+          aria-hidden="true"
+        >
           <span
             v-for="(item, index) in letters"
             :key="index"

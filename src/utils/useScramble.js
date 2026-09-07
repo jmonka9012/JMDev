@@ -1,11 +1,12 @@
 import { nextTick } from "vue";
 import { gsap } from "gsap";
 import { ASCII_STRING_NO_JP } from "../utils/asciiConstants.js";
+import { motionPaused } from "./motionPreference.js";
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export const runScrambleLoop = (state, element) => {
-  if (!state.isActive || !element) return;
+  if (!state.isActive || !element || motionPaused.value) return;
 
   element.textContent =
     ASCII_STRING_NO_JP[Math.floor(Math.random() * ASCII_STRING_NO_JP.length)];
@@ -25,9 +26,10 @@ export function useScramble() {
     await nextTick();
     clearTimeouts();
 
-    const { scrambleTime = 800, stagger = 40 } = config;
+    const { scrambleTime = 800, stagger = 40, shouldStop } = config;
 
     for (let i = 0; i < lettersRef.value.length; i++) {
+      if (motionPaused.value || shouldStop?.()) break;
       const item = lettersRef.value[i];
 
       item.state.isActive = true;
@@ -50,9 +52,10 @@ export function useScramble() {
     await nextTick();
     clearTimeouts();
 
-    const { flash = { from: 320, to: 500 } } = config;
+    const { flash = { from: 320, to: 500 }, shouldStop } = config;
 
     for (let i = 0; i < lettersRef.value.length; i++) {
+      if (motionPaused.value || shouldStop?.()) break;
       const item = lettersRef.value[i];
 
       item.state.isActive = true;

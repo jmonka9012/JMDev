@@ -10,6 +10,7 @@ import {
   watch,
 } from "vue";
 import { fadeIn } from "../utils/animations.js";
+import { motionPaused } from "../utils/motionPreference.js";
 
 const lenis = inject("lenis");
 const menuItems = ref([]);
@@ -33,7 +34,10 @@ const scrollOptions = {
 
 const scrollTo = (id) => {
   activeId.value = id;
-  lenis.scrollTo(`#${id}`, scrollOptions);
+  lenis.scrollTo(`#${id}`, {
+    ...scrollOptions,
+    immediate: motionPaused.value,
+  });
 };
 
 const animateMenu = async () => {
@@ -73,7 +77,7 @@ onMounted(() => {
         );
         if (activeIndex !== -1 && menuItems.value[activeIndex]) {
           menuItems.value[activeIndex].scrollIntoView({
-            behavior: "smooth",
+            behavior: motionPaused.value ? "auto" : "smooth",
             inline: "center",
             block: "nearest",
           });
@@ -189,10 +193,11 @@ const copy = computed(() =>
   }
 
   @include media-breakpoint-down(xl) {
-    //top: calc(32px + 40px);
+    padding: 7px 14px;
+    font-size: 20px;
     color: black;
     background-color: #fff;
-    top: calc(100dvh - 80px);
+    top: calc(100dvh - 70px);
   }
 }
 

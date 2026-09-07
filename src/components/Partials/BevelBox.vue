@@ -1,7 +1,8 @@
 <script setup>
-import { ref, onMounted, onUnmounted, inject, computed } from "vue";
+import { computed, inject, onMounted, onUnmounted, ref, watch } from "vue";
 import { useVisibility } from "../../utils/useVisibility.js";
 import { gsap } from "gsap";
+import { motionPaused } from "../../utils/motionPreference.js";
 
 const lenis = inject("lenis");
 const mousePos = inject("mousePos");
@@ -275,7 +276,7 @@ const updateBorder = (layer, side, bordersConfig, maxDist, distance) => {
 
   gsap.to(box[layer].value, {
     [variableName]: targetColor,
-    duration: 2.4,
+    duration: motionPaused.value ? 0 : 2.4,
     ease: "power2.out",
     overwrite: "auto",
   });
@@ -288,6 +289,15 @@ const update = () => {
   handleBorders();
   ticking = false;
 };
+
+watch(motionPaused, (isPaused) => {
+  if (!isPaused) return;
+
+  LAYERS.forEach((layer) => {
+    if (box[layer].value) gsap.killTweensOf(box[layer].value);
+  });
+  update();
+});
 
 const onMouseMove = () => {
   if (!ticking) {
