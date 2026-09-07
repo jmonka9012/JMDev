@@ -16,6 +16,7 @@ import { refreshState } from "../utils/refreshState.js";
 
 import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
+import { useHead } from "@unhead/vue";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -47,6 +48,44 @@ const props = defineProps({
 
 const lang = props.data.acf.lang;
 
+const seo =
+  lang === "pl"
+    ? {
+        title: "Jacek Mońka | Front-end Engineer",
+        description:
+          "Portfolio Jacka Mońki, Front-end Engineera specjalizującego się w nowoczesnych interfejsach webowych.",
+        canonical: "https://jmdev.pl/",
+      }
+    : {
+        title: "Jacek Mońka | Front-end Engineer",
+        description:
+          "Portfolio of Jacek Mońka, a Front-end Engineer specializing in modern web interfaces.",
+        canonical: "https://jmdev.pl/en",
+      };
+
+useHead({
+  title: seo.title,
+  htmlAttrs: {
+    lang,
+  },
+  meta: [
+    {
+      name: "description",
+      content: seo.description,
+    },
+  ],
+  link: [
+    { rel: "canonical", href: seo.canonical },
+    { rel: "alternate", hreflang: "pl", href: "https://jmdev.pl/" },
+    { rel: "alternate", hreflang: "en", href: "https://jmdev.pl/en" },
+    {
+      rel: "alternate",
+      hreflang: "x-default",
+      href: "https://jmdev.pl/",
+    },
+  ],
+});
+
 const technologies = ref([]);
 technologies.value = await getPageData("technology/all");
 
@@ -64,32 +103,34 @@ const fadeInPl = (el) => fadeIn(el, 1.5, 0, 0, 0);
     <div v-if="isMounted" class="fixed" style="top: 0">
       <DivineOrbOptimised />
     </div>
-    <Hero :data="data.acf.hero" />
-    <AboutMe
-      v-on-enter="fadeInPl"
-      class="js-hidden"
-      :data="data.acf.about_me"
-      :lang="lang"
-    />
-    <Technologies
-      v-on-enter="fadeInPl"
-      class="js-hidden"
-      :data="data.acf.technologies"
-      :technologies="technologies"
-    />
-    <Strengths
-      v-on-enter="fadeInPl"
-      class="js-hidden"
-      :data="data.acf.other_skills"
-    />
-    <Projects
-      v-on-enter="fadeInPl"
-      class="mb-40 js-hidden"
-      :data="data.acf.projects"
-      :projects="projects"
-      :lang="lang"
-    />
-    <Experience class="js-hidden" :data="data.acf.experience" :lang="lang" />
+    <main id="main-content" tabindex="-1">
+      <Hero :data="data.acf.hero" />
+      <AboutMe
+        v-on-enter="fadeInPl"
+        class="js-hidden"
+        :data="data.acf.about_me"
+        :lang="lang"
+      />
+      <Technologies
+        v-on-enter="fadeInPl"
+        class="js-hidden"
+        :data="data.acf.technologies"
+        :technologies="technologies"
+      />
+      <Strengths
+        v-on-enter="fadeInPl"
+        class="js-hidden"
+        :data="data.acf.other_skills"
+      />
+      <Projects
+        v-on-enter="fadeInPl"
+        class="mb-40 js-hidden"
+        :data="data.acf.projects"
+        :projects="projects"
+        :lang="lang"
+      />
+      <Experience class="js-hidden" :data="data.acf.experience" :lang="lang" />
+    </main>
     <Footer :lang="lang" />
   </div>
 </template>

@@ -13,12 +13,12 @@ const footerText =
 </script>
 
 <template>
-  <div class="container">
+  <footer class="container">
     <div class="nota">{{ footerText }}</div>
     <div class="mb-10 text-center">
       2026 - Jacek Mońka, all rights reserved.
     </div>
-  </div>
+  </footer>
 </template>
 
 <style lang="scss" scoped>

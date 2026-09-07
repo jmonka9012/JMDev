@@ -1,6 +1,14 @@
 <script setup>
 import { registeredElements } from "../utils/useRegistry.js";
-import { inject, nextTick, onMounted, onUnmounted, ref, watch } from "vue";
+import {
+  computed,
+  inject,
+  nextTick,
+  onMounted,
+  onUnmounted,
+  ref,
+  watch,
+} from "vue";
 import { fadeIn } from "../utils/animations.js";
 
 const lenis = inject("lenis");
@@ -89,31 +97,74 @@ onUnmounted(() => {
   observer?.disconnect();
 });
 
-const langSwapText = props.lang === "pl" ? "EN" : "PL";
+const copy = computed(() =>
+  props.lang === "pl"
+    ? {
+        navigationLabel: "Nawigacja po sekcjach strony",
+        skipLink: "Przejdź do treści",
+        languageSwitchLabel: "Zmień język na angielski",
+        languageSwitchText: "EN",
+        targetLang: "en",
+        targetHref: "/en",
+      }
+    : {
+        navigationLabel: "Page sections",
+        skipLink: "Skip to content",
+        languageSwitchLabel: "Change language to Polish",
+        languageSwitchText: "PL",
+        targetLang: "pl",
+        targetHref: "/",
+      },
+);
 </script>
 
 <template>
+  <a class="skip-link" href="#main-content">{{ copy.skipLink }}</a>
   <header class="site-header">
-    <nav class="menu container">
-      <div
-        role="button"
-        v-for="(item, index) in registeredElements"
+    <nav class="menu container" :aria-label="copy.navigationLabel">
+      <button
+        v-for="item in registeredElements"
         :key="item.id"
-        @click="scrollTo(item.id)"
         ref="menuItems"
+        type="button"
         class="menu__item js-hidden"
         :class="{ 'is-active': activeId === item.id }"
+        :aria-current="activeId === item.id ? 'location' : undefined"
+        @click="scrollTo(item.id)"
       >
         {{ item.title }}
-      </div>
+      </button>
     </nav>
-    <a :href="lang === 'pl' ? '/en' : '/'" class="lang-swap">
-      {{ langSwapText }}
+    <a
+      :href="copy.targetHref"
+      :hreflang="copy.targetLang"
+      :lang="copy.targetLang"
+      :aria-label="copy.languageSwitchLabel"
+      rel="alternate"
+      class="lang-swap"
+    >
+      {{ copy.languageSwitchText }}
     </a>
   </header>
 </template>
 
 <style lang="scss" scoped>
+.skip-link {
+  position: fixed;
+  top: 8px;
+  left: 8px;
+  z-index: 10001;
+  padding: 10px 14px;
+  border: 2px solid var(--main-color);
+  color: #fff;
+  background: #000;
+  transform: translateY(calc(-100% - 12px));
+
+  &:focus {
+    transform: translateY(0);
+  }
+}
+
 .site-header {
   position: fixed;
   top: 0;
@@ -188,6 +239,12 @@ const langSwapText = props.lang === "pl" ? "EN" : "PL";
   }
 
   &__item {
+    appearance: none;
+    margin: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
     font-size: 20px;
     font-weight: 300;
     padding: 8px 10px;
