@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import { useScramble } from "../../utils/useScramble.js";
 
 const props = defineProps({
@@ -18,7 +18,15 @@ const props = defineProps({
   },
 });
 
-const letters = ref([]);
+const letters = ref(
+  Array.from(props.text).map((char) => ({
+    original: char,
+    state: { isActive: false, originalChar: char },
+    el: null,
+    visible: true,
+  })),
+);
+const isEnhanced = ref(false);
 const { launchFlashAnimation, clearTimeouts } = useScramble();
 
 const handleHover = () => {
@@ -26,26 +34,30 @@ const handleHover = () => {
 };
 
 onMounted(() => {
-  letters.value = Array.from(props.text).map((char) => ({
-    original: char,
-    state: { isActive: false, originalChar: char },
-    el: null,
-    visible: true,
-  }));
+  isEnhanced.value = true;
 });
 
 onUnmounted(() => {
   clearTimeouts();
+  letters.value.forEach((item) => {
+    item.state.isActive = false;
+  });
 });
 </script>
 
 <template>
-  <a :href="link" :target="target" class="btn" @mouseenter="handleHover">
+  <a
+    :href="link"
+    :target="target"
+    class="btn"
+    :class="{ 'is-enhanced': isEnhanced }"
+    @mouseenter="handleHover"
+  >
     <div class="btn__inner">
       <span class="scramble-wrapper">
-        <span class="ghost-text">{{ text }}</span>
+        <span class="button-text">{{ text }}</span>
 
-        <span class="animating-text">
+        <span v-if="isEnhanced" class="animating-text" aria-hidden="true">
           <span
             v-for="(item, index) in letters"
             :key="index"
@@ -137,7 +149,6 @@ onUnmounted(() => {
   }
 }
 
-// The remaining code (scramble-wrapper, ghost-text, etc.) remains unchanged.
 .scramble-wrapper {
   display: inline-flex;
   align-items: center;
@@ -146,9 +157,12 @@ onUnmounted(() => {
   z-index: 1;
 }
 
-.ghost-text {
-  visibility: hidden;
+.button-text {
   pointer-events: none;
+}
+
+.btn.is-enhanced .button-text {
+  color: transparent;
 }
 
 .animating-text {

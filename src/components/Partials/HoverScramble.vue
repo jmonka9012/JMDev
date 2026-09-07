@@ -1,19 +1,13 @@
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue";
+import { onMounted, onUnmounted, ref } from "vue";
 import { runScrambleLoop } from "../../utils/useScramble.js";
 
 const props = defineProps({
   text: { type: String, default: "" },
 });
 
-const letters = ref([]);
-const wrapper = ref(null);
-
-const initLetters = () => {
-  const content =
-    props.text || (wrapper.value ? wrapper.value.textContent.trim() : "");
-
-  letters.value = Array.from(content).map((char) => ({
+const letters = ref(
+  Array.from(props.text).map((char) => ({
     char,
     isWhitespace: /\s/.test(char),
     hasInteracted: false,
@@ -23,21 +17,20 @@ const initLetters = () => {
     },
     stopTimeout: null,
     el: null,
-  }));
-};
+  })),
+);
+const isEnhanced = ref(false);
 
 const handleMouseEnter = (item) => {
   if (item.isWhitespace) return;
 
   item.hasInteracted = true;
 
-  // If an animation-ending timer already exists, clear it.
   if (item.stopTimeout) {
     clearTimeout(item.stopTimeout);
     item.stopTimeout = null;
   }
 
-  // Start the animation only when it is not already running.
   if (!item.state.isActive) {
     item.state.isActive = true;
     runScrambleLoop(item.state, item.el);
@@ -55,52 +48,76 @@ const handleMouseLeave = (item) => {
 };
 
 onMounted(() => {
-  initLetters();
+  isEnhanced.value = true;
 });
 
 onUnmounted(() => {
   letters.value.forEach((item) => {
+    item.state.isActive = false;
     if (item.stopTimeout) clearTimeout(item.stopTimeout);
   });
 });
 </script>
 
 <template>
-  <span
-    ref="wrapper"
-    class="hover-scramble"
-    :class="{ loaded: letters.length > 0 }"
-  >
-    <span
-      v-for="(item, index) in letters"
-      :key="index"
-      :ref="(el) => (item.el = el)"
-      :class="{
-        whitespace: item.isWhitespace,
-        'has-interacted': item.hasInteracted,
-      }"
-      @mouseenter="handleMouseEnter(item)"
-      @mouseleave="handleMouseLeave(item)"
-    >
-      {{ item.char }}
+  <span class="hover-scramble" :class="{ 'is-enhanced': isEnhanced }">
+    <span class="hover-scramble__text">
+      <template v-if="text">{{ text }}</template>
+      <slot v-else />
     </span>
-    <span v-if="letters.length === 0"><slot /></span>
+    <span
+      v-if="text && isEnhanced"
+      class="hover-scramble__animation"
+      aria-hidden="true"
+    >
+      <span
+        v-for="(item, index) in letters"
+        :key="index"
+        :ref="(el) => (item.el = el)"
+        class="hover-scramble__letter"
+        :class="{ 'has-interacted': item.hasInteracted }"
+        @mouseenter="handleMouseEnter(item)"
+        @mouseleave="handleMouseLeave(item)"
+      >
+        {{ item.char }}
+      </span>
+    </span>
   </span>
 </template>
 
-<style lang="scss">
+<style lang="scss" scoped>
 @import "../../SCSS/_scramble.scss";
 
-.hover-scramble.loaded {
-  display: inline-block; // Improve text-rendering performance.
+.hover-scramble {
+  position: relative;
+  display: inline-block;
+  white-space: nowrap;
 
-  span {
-    display: inline-block; // Required for animations and transforms to work correctly.
-    white-space: pre; // Preserve whitespace.
+  &.is-enhanced {
+    .hover-scramble__text {
+      color: transparent;
+    }
+
+    .hover-scramble__animation {
+      opacity: 1;
+      pointer-events: auto;
+    }
+  }
+}
+
+.hover-scramble__animation {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
+
+  .hover-scramble__letter {
+    display: inline-block;
+    white-space: pre;
 
     &:hover {
-      background-color: white;
       color: black;
+      background-color: white;
       transition: background-color 0.2s ease;
     }
 

@@ -27,8 +27,3 @@ $grid-breakpoints: (
     @warn "Brak breakpointu '#{$name}' w mapie $grid-breakpoints";
   }
 }
-
-.js-hidden {
-  opacity: 0;
-  visibility: hidden;
-}

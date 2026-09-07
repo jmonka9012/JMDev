@@ -14,12 +14,20 @@ const props = defineProps({
   interval: { type: Number, default: 3000 },
 });
 
+const accessibleText = props.words.find((word) => word.length > 0) || "";
 let lastWord = "";
 const appendableStrings = props.suffixes
   ? props.suffixes
   : [" <3", " :)", "!", "."];
-const currentLetters = ref([]);
+const currentLetters = ref(
+  Array.from(accessibleText).map((char) => ({
+    state: { isActive: false, originalChar: char },
+    el: null,
+    visible: true,
+  })),
+);
 const isWaiting = ref(false);
+const isEnhanced = ref(false);
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -79,7 +87,7 @@ const cycleWords = async () => {
     if (isVisible.value) {
       let word = randomArrayItem(props.words);
 
-      while (word === lastWord) {
+      while (props.words.length > 1 && word === lastWord) {
         word = randomArrayItem(props.words);
       }
 
@@ -99,6 +107,7 @@ const cycleWords = async () => {
 
 onMounted(() => {
   isActive = true;
+  isEnhanced.value = true;
   cycleWords();
 });
 
@@ -109,7 +118,8 @@ onUnmounted(() => {
 
 <template>
   <div ref="container" class="scramble-container">
-    <div class="scramble-group">
+    <span :class="{ 'visually-hidden': isEnhanced }">{{ accessibleText }}</span>
+    <div v-if="isEnhanced" class="scramble-group" aria-hidden="true">
       <span
         v-for="(item, index) in currentLetters"
         :key="index"
@@ -121,7 +131,7 @@ onUnmounted(() => {
         class="letter"
         :class="{ 'is-visible': item.visible }"
       >
-        &nbsp;
+        {{ item.state.originalChar }}
       </span>
       <span class="writing-cursor" :class="{ blinking: isWaiting }"></span>
     </div>
@@ -133,6 +143,18 @@ onUnmounted(() => {
 
 .scramble-container {
   display: flex;
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .scramble-group {

@@ -24,11 +24,6 @@
   backdrop-filter: blur(3px);
 }
 
-.js-hidden {
-  opacity: 0;
-  visibility: hidden;
-}
-
 body {
   color: white;
   margin: 0;

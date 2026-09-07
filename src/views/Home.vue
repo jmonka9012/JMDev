@@ -105,31 +105,21 @@ const fadeInPl = (el) => fadeIn(el, 1.5, 0, 0, 0);
     </div>
     <main id="main-content" tabindex="-1">
       <Hero :data="data.acf.hero" />
-      <AboutMe
-        v-on-enter="fadeInPl"
-        class="js-hidden"
-        :data="data.acf.about_me"
-        :lang="lang"
-      />
+      <AboutMe v-on-enter="fadeInPl" :data="data.acf.about_me" :lang="lang" />
       <Technologies
         v-on-enter="fadeInPl"
-        class="js-hidden"
         :data="data.acf.technologies"
         :technologies="technologies"
       />
-      <Strengths
-        v-on-enter="fadeInPl"
-        class="js-hidden"
-        :data="data.acf.other_skills"
-      />
+      <Strengths v-on-enter="fadeInPl" :data="data.acf.other_skills" />
       <Projects
         v-on-enter="fadeInPl"
-        class="mb-40 js-hidden"
+        class="mb-40"
         :data="data.acf.projects"
         :projects="projects"
         :lang="lang"
       />
-      <Experience class="js-hidden" :data="data.acf.experience" :lang="lang" />
+      <Experience :data="data.acf.experience" :lang="lang" />
     </main>
     <Footer :lang="lang" />
   </div>

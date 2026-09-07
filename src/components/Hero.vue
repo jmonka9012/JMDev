@@ -30,7 +30,7 @@ onUnmounted(() => {
   <section :id="myId" class="section-fvh justify-center">
     <div class="container">
       <h1 class="hero-text">
-        <HoverScramble>Jacek Mońka</HoverScramble>
+        <HoverScramble text="Jacek Mońka" />
         <br />
         <ScrambleGroup
           :words="data.scramble_group.split('|')"

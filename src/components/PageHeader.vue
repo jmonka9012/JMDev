@@ -127,7 +127,7 @@ const copy = computed(() =>
         :key="item.id"
         ref="menuItems"
         type="button"
-        class="menu__item js-hidden"
+        class="menu__item"
         :class="{ 'is-active': activeId === item.id }"
         :aria-current="activeId === item.id ? 'location' : undefined"
         @click="scrollTo(item.id)"

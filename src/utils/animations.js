@@ -10,12 +10,12 @@ export const fadeIn = (
   gsap.fromTo(
     element,
     {
-      autoAlpha: 0,
+      opacity: 0,
       x: fromX,
       y: fromY,
     },
     {
-      autoAlpha: 1,
+      opacity: 1,
       delay: delay,
       x: 0,
       y: 0,

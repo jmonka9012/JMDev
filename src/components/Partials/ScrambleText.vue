@@ -1,5 +1,5 @@
 <script setup>
-import { ref, onMounted, watch, onUnmounted, nextTick } from "vue";
+import { nextTick, onMounted, onUnmounted, ref, watch } from "vue";
 import { useVisibility } from "../../utils/useVisibility.js";
 import { useScramble } from "../../utils/useScramble.js";
 
@@ -12,32 +12,77 @@ const props = defineProps({
   flash: { type: Object, default: () => ({ from: 320, to: 500 }) },
   once: { type: Boolean, default: true },
   wrapWords: { type: Boolean, default: true },
-  autoplay: { type: Boolean, default: true }, // New prop.
+  autoplay: { type: Boolean, default: true },
 });
 
-const wrapper = ref(null);
-const letters = ref([]);
-const groupedWords = ref([]);
-const hasAnimated = ref(false);
-const isVisible = useVisibility(wrapper);
+const createTextLayers = () => {
+  const allLetters = [];
+  const parts = props.wrapWords ? props.text.split(/(\s+)/) : [props.text];
+  const words = parts
+    .filter((part) => part.length > 0)
+    .map((part) => {
+      const isWhitespace = /^\s+$/.test(part);
+      const wordLetters = Array.from(part).map((char) => {
+        const item = {
+          original: char,
+          state: { isActive: false, originalChar: char },
+          el: null,
+          visible: false,
+        };
 
+        allLetters.push(item);
+        return item;
+      });
+
+      return { isWhitespace, letters: wordLetters };
+    });
+
+  return { allLetters, words };
+};
+
+const initialLayers = createTextLayers();
+const wrapper = ref(null);
+const letters = ref(initialLayers.allLetters);
+const groupedWords = ref(initialLayers.words);
+const hasAnimated = ref(false);
+const isAnimating = ref(false);
+const isEnhanced = ref(false);
+const isVisible = useVisibility(wrapper);
 const { launchWriteAnimation, launchFlashAnimation, clearTimeouts } =
   useScramble();
 
-const triggerAnimation = async () => {
-  clearTimeouts();
+let animationEndTimeout;
+let animationRun = 0;
 
-  letters.value.forEach((item) => (item.visible = false));
+const finishAnimationAfter = (delay, run) => {
+  animationEndTimeout = setTimeout(() => {
+    if (run === animationRun) isAnimating.value = false;
+  }, delay);
+};
+
+const triggerAnimation = async () => {
+  const run = ++animationRun;
+  clearTimeouts();
+  clearTimeout(animationEndTimeout);
+  isAnimating.value = true;
+  letters.value.forEach((item) => {
+    item.state.isActive = false;
+    item.visible = false;
+  });
 
   await nextTick();
 
   if (props.mode === "write") {
-    launchWriteAnimation(letters, {
+    await launchWriteAnimation(letters, {
       scrambleTime: props.scrambleTime,
       stagger: props.stagger,
     });
+    finishAnimationAfter(Math.max(props.scrambleTime - props.stagger, 0), run);
   } else if (props.mode === "flash") {
-    launchFlashAnimation(letters, { flash: props.flash });
+    await launchFlashAnimation(letters, { flash: props.flash });
+    finishAnimationAfter(props.flash.to, run);
+  } else {
+    isAnimating.value = false;
   }
 
   hasAnimated.value = true;
@@ -56,54 +101,46 @@ defineExpose({
 });
 
 onMounted(() => {
-  letters.value = [];
-
-  const parts = props.wrapWords ? props.text.split(/(\s+)/) : [props.text];
-
-  groupedWords.value = parts
-    .filter((p) => p.length > 0)
-    .map((part) => {
-      const isWhitespace = /^\s+$/.test(part);
-
-      const wordLetters = Array.from(part).map((char) => {
-        const item = {
-          original: char,
-          state: { isActive: true, originalChar: char },
-          el: null,
-          visible: false,
-        };
-
-        letters.value.push(item);
-        return item;
-      });
-
-      return { isWhitespace, letters: wordLetters };
-    });
+  isEnhanced.value = true;
 });
 
 onUnmounted(() => {
+  animationRun += 1;
+  clearTimeout(animationEndTimeout);
   clearTimeouts();
+  letters.value.forEach((item) => {
+    item.state.isActive = false;
+  });
 });
 </script>
+
 <template>
-  <component :is="tag" ref="wrapper" class="scramble-wrapper">
-    <span
-      v-for="(word, wIndex) in groupedWords"
-      :key="wIndex"
-      :class="{ word: wrapWords && !word.isWhitespace }"
-    >
+  <component
+    :is="tag"
+    ref="wrapper"
+    class="scramble-wrapper"
+    :class="{ 'is-animating': isAnimating }"
+  >
+    <span class="scramble-text">{{ text }}</span>
+    <span v-if="isEnhanced" class="scramble-animation" aria-hidden="true">
       <span
-        v-for="(item, index) in word.letters"
-        :key="`${wIndex}-${index}`"
-        :ref="
-          (el) => {
-            if (el) item.el = el;
-          }
-        "
-        class="letter"
-        :class="{ 'is-visible': item.visible }"
+        v-for="(word, wIndex) in groupedWords"
+        :key="wIndex"
+        :class="{ word: wrapWords && !word.isWhitespace }"
       >
-        {{ item.visible ? "" : "&nbsp;" }}
+        <span
+          v-for="(item, index) in word.letters"
+          :key="`${wIndex}-${index}`"
+          :ref="
+            (el) => {
+              if (el) item.el = el;
+            }
+          "
+          class="letter"
+          :class="{ 'is-visible': item.visible }"
+        >
+          {{ item.original }}
+        </span>
       </span>
     </span>
   </component>
@@ -113,18 +150,36 @@ onUnmounted(() => {
 @import "../../SCSS/_scramble.scss";
 
 .scramble-wrapper {
+  position: relative;
   padding: 0;
+
+  &.is-animating {
+    .scramble-text {
+      color: transparent;
+    }
+
+    .scramble-animation {
+      opacity: 1;
+    }
+  }
+}
+
+.scramble-animation {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  pointer-events: none;
 
   .word {
     display: inline-block;
-    white-space: nowrap; // Prevent words from breaking in the middle.
+    white-space: nowrap;
   }
 
   .letter {
     display: inline-block;
-    white-space: pre; // Preserve non-breaking spaces.
     min-width: 0.1ch;
     opacity: 0;
+    white-space: pre;
 
     &.is-visible {
       opacity: 1;

@@ -1,7 +1,9 @@
+import { gsap } from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 
 export const vOnEnter = {
   mounted(el, binding) {
+    gsap.set(el, { opacity: 0 });
     el._st = ScrollTrigger.create({
       trigger: el,
       start: "top 85%",

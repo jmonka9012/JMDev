@@ -41,7 +41,6 @@ onUnmounted(() => {
     :tracked="false"
     :id="myId"
     v-on-enter="animateExperience"
-    class="js-hidden"
   >
     <ScrambleText class="mb-20" tag="h2" :text="data.heading"></ScrambleText>
 
@@ -51,7 +50,7 @@ onUnmounted(() => {
           <span>{{ year }}</span>
         </div>
 
-        <div ref="jobEl" class="timeline__job js-hidden">
+        <div ref="jobEl" class="timeline__job">
           <div class="relative">
             <span
               ><span>{{ data.work_heading }}</span></span
@@ -59,7 +58,7 @@ onUnmounted(() => {
           </div>
         </div>
 
-        <div ref="eduEl" class="timeline__education js-hidden">
+        <div ref="eduEl" class="timeline__education">
           <div class="relative">
             <span
               ><span>{{ data.education_heading }}</span></span
