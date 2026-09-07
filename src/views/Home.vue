@@ -52,17 +52,29 @@ const lang = props.data.acf.lang;
 const seo =
   lang === "pl"
     ? {
-        title: "Jacek Mońka | Front-end Engineer",
+        title: "Jacek Mońka — Front-end Developer | JavaScript, Vue.js, PHP",
         description:
-          "Portfolio Jacka Mońki, Front-end Engineera specjalizującego się w nowoczesnych interfejsach webowych.",
+          "Jacek Mońka — Front-end Developer z ponad 3-letnim doświadczeniem komercyjnym w tworzeniu stron i aplikacji webowych w JavaScript, Vue.js i PHP.",
         canonical: "https://jmdev.pl/",
+        locale: "pl_PL",
+        image: "https://jmdev.pl/files/image-3.jpg",
       }
     : {
-        title: "Jacek Mońka | Front-end Engineer",
+        title: "Jacek Mońka — Front-end Developer | JavaScript, Vue.js, PHP",
         description:
-          "Portfolio of Jacek Mońka, a Front-end Engineer specializing in modern web interfaces.",
+          "Jacek Mońka is a Front-end Developer with over 3 years of commercial experience building websites and web applications with JavaScript, Vue.js and PHP.",
         canonical: "https://jmdev.pl/en",
+        locale: "en_GB",
+        image: "https://jmdev.pl/files/image-3.jpg",
       };
+
+const personSchema = {
+  "@context": "https://schema.org",
+  "@type": "Person",
+  name: "Jacek Mońka",
+  url: "https://jmdev.pl/",
+  jobTitle: "Front-end Developer",
+};
 
 useHead({
   title: seo.title,
@@ -74,6 +86,20 @@ useHead({
       name: "description",
       content: seo.description,
     },
+    { name: "robots", content: "index, follow, max-image-preview:large" },
+    { property: "og:type", content: "website" },
+    { property: "og:site_name", content: "Jacek Mońka" },
+    { property: "og:locale", content: seo.locale },
+    { property: "og:url", content: seo.canonical },
+    { property: "og:title", content: seo.title },
+    { property: "og:description", content: seo.description },
+    { property: "og:image", content: seo.image },
+    { property: "og:image:width", content: "976" },
+    { property: "og:image:height", content: "1072" },
+    { name: "twitter:card", content: "summary_large_image" },
+    { name: "twitter:title", content: seo.title },
+    { name: "twitter:description", content: seo.description },
+    { name: "twitter:image", content: seo.image },
   ],
   link: [
     { rel: "canonical", href: seo.canonical },
@@ -83,6 +109,12 @@ useHead({
       rel: "alternate",
       hreflang: "x-default",
       href: "https://jmdev.pl/",
+    },
+  ],
+  script: [
+    {
+      type: "application/ld+json",
+      innerHTML: JSON.stringify(personSchema),
     },
   ],
 });

@@ -31,8 +31,10 @@ onUnmounted(() => {
     <div class="container">
       <h1 class="hero-text">
         <HoverScramble text="Jacek Mońka" />
+        <span class="sr-only"> — Front-end Developer</span>
         <br />
         <ScrambleGroup
+          aria-hidden="true"
           :words="data.scramble_group.split('|')"
           :suffixes="data.scramble_group_suffixes.split('|')"
           :interval="3000"
