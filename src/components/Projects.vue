@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, watch, onMounted, onUnmounted } from "vue";
+import { nextTick, ref, watch, onMounted, onUnmounted } from "vue";
 import { useElementsRegistry } from "../utils/useRegistry.js";
 const { registerElement, unregisterElement } = useElementsRegistry();
 import { Swiper, SwiperSlide } from "swiper/vue";
@@ -10,6 +10,8 @@ import {
   EffectFade,
   Autoplay,
   Virtual,
+  A11y,
+  Keyboard,
 } from "swiper/modules";
 import { useVisibility } from "../utils/useVisibility.js";
 import { refreshState } from "../utils/refreshState.js";
@@ -49,29 +51,93 @@ const activeIndex = ref(0);
 const sliderContainer = ref(null);
 const isSliderVisible = useVisibility(sliderContainer);
 const innerSwipers = new Set();
+const pausedInnerSwipers = new Set();
 
-const innerAutoplay = computed(() => ({
-  delay: motionPaused.value ? 3500 : 300,
+const innerAutoplay = {
+  delay: 300,
   disableOnInteraction: false,
   pauseOnMouseEnter: true,
-}));
+};
+
+const copy =
+  props.lang === "pl"
+    ? {
+        carousel: "Karuzela projektów",
+        carouselDescription: "karuzela",
+        previous: "Poprzedni projekt",
+        next: "Następny projekt",
+        first: "To jest pierwszy projekt",
+        last: "To jest ostatni projekt",
+        pagination: "Przejdź do projektu {{index}}",
+        slide: "Projekt {{index}} z {{slidesLength}}",
+      }
+    : {
+        carousel: "Projects carousel",
+        carouselDescription: "carousel",
+        previous: "Previous project",
+        next: "Next project",
+        first: "This is the first project",
+        last: "This is the last project",
+        pagination: "Go to project {{index}}",
+        slide: "Project {{index}} of {{slidesLength}}",
+      };
 
 const onInnerSwiperInit = (swiper) => {
   innerSwipers.add(swiper);
+
+  if (motionPaused.value) {
+    pausedInnerSwipers.add(swiper);
+    swiper.autoplay?.stop();
+  }
 };
 
 watch(motionPaused, (isPaused) => {
-  const delay = isPaused ? 3500 : 300;
+  if (isPaused) {
+    innerSwipers.forEach((swiper) => {
+      if (swiper.destroyed || !swiper.autoplay?.running) return;
 
-  innerSwipers.forEach((swiper) => {
-    if (swiper.destroyed || !swiper.params.autoplay) return;
+      pausedInnerSwipers.add(swiper);
+      swiper.autoplay.stop();
+    });
+    return;
+  }
 
-    swiper.params.autoplay.delay = delay;
-    swiper.originalParams.autoplay.delay = delay;
-    swiper.autoplay.stop();
-    swiper.autoplay.start();
+  pausedInnerSwipers.forEach((swiper) => {
+    if (!swiper.destroyed) swiper.autoplay?.start();
   });
+  pausedInnerSwipers.clear();
 });
+
+const focusableSelector =
+  "a[href], area[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), iframe, object, embed, [contenteditable], [tabindex]";
+
+const updateSlideFocusability = (swiper) => {
+  swiper.slides.forEach((slide) => {
+    const isActive = slide.classList.contains("swiper-slide-active");
+
+    slide.querySelectorAll(focusableSelector).forEach((element) => {
+      if (!isActive) {
+        if (!element.hasAttribute("data-projects-original-tabindex")) {
+          element.setAttribute(
+            "data-projects-original-tabindex",
+            element.getAttribute("tabindex") ?? "",
+          );
+        }
+        element.setAttribute("tabindex", "-1");
+        return;
+      }
+
+      if (!element.hasAttribute("data-projects-original-tabindex")) return;
+
+      const originalTabindex = element.getAttribute(
+        "data-projects-original-tabindex",
+      );
+      if (originalTabindex) element.setAttribute("tabindex", originalTabindex);
+      else element.removeAttribute("tabindex");
+      element.removeAttribute("data-projects-original-tabindex");
+    });
+  });
+};
 
 const tryPlayAnimation = () => {
   if (scrambleRefs.value[activeIndex.value]) {
@@ -80,14 +146,16 @@ const tryPlayAnimation = () => {
 };
 
 const onSwiperInit = (swiper) => {
-  activeIndex.value = swiper.activeIndex;
+  activeIndex.value = swiper.realIndex;
+  nextTick(() => updateSlideFocusability(swiper));
   setTimeout(() => {
     tryPlayAnimation();
   }, 100);
 };
 
 const onSlideChange = (swiper) => {
-  activeIndex.value = swiper.activeIndex;
+  activeIndex.value = swiper.realIndex;
+  nextTick(() => updateSlideFocusability(swiper));
   tryPlayAnimation();
 };
 
@@ -101,6 +169,7 @@ onMounted(() => {
 onUnmounted(() => {
   unregisterElement(myId);
   innerSwipers.clear();
+  pausedInnerSwipers.clear();
 });
 
 const buttonText = props.lang === "pl" ? "zobacz" : "view";
@@ -112,11 +181,11 @@ const buttonText = props.lang === "pl" ? "zobacz" : "view";
       <ScrambleText class="mb-6" mode="write" tag="h2" :text="data.heading" />
     </div>
 
-    <div class="container p-0">
+    <div class="container p-0 relative">
       <swiper
         :effect="'fade'"
         :fadeEffect="{ crossFade: true }"
-        :modules="[Pagination, Navigation, Virtual, EffectFade]"
+        :modules="[Pagination, Navigation, Virtual, EffectFade, A11y, Keyboard]"
         :navigation="{
           nextEl: '.custom-swiper-next',
           prevEl: '.custom-swiper-prev',
@@ -124,6 +193,22 @@ const buttonText = props.lang === "pl" ? "zobacz" : "view";
         :pagination="{
           el: '.custom-swiper-pagination',
           clickable: true,
+        }"
+        :a11y="{
+          containerRole: 'region',
+          containerMessage: copy.carousel,
+          containerRoleDescriptionMessage: copy.carouselDescription,
+          prevSlideMessage: copy.previous,
+          nextSlideMessage: copy.next,
+          firstSlideMessage: copy.first,
+          lastSlideMessage: copy.last,
+          paginationBulletMessage: copy.pagination,
+          slideLabelMessage: copy.slide,
+        }"
+        :keyboard="{
+          enabled: true,
+          onlyInViewport: true,
+          pageUpDown: false,
         }"
         :simulate-touch="false"
         :slides-per-group="1"
@@ -200,17 +285,31 @@ const buttonText = props.lang === "pl" ? "zobacz" : "view";
           </div>
         </swiper-slide>
       </swiper>
+      <div
+        v-if="projects.length"
+        class="projects-swiper__counter"
+        aria-atomic="true"
+        aria-live="polite"
+      >
+        {{ activeIndex + 1 }}/{{ projects.length }}
+      </div>
     </div>
 
     <div class="project-navigation">
       <div class="project-navigation__inner">
-        <button class="custom-swiper-prev project-navigation__prev">
+        <button
+          class="custom-swiper-prev project-navigation__prev"
+          :aria-label="copy.previous"
+        >
           <img v-svg-inject alt="" src="../assets/next-item.svg" />
         </button>
         <div
           class="custom-swiper-pagination project-navigation__pagination flex justify-center gap-2"
         ></div>
-        <button class="custom-swiper-next project-navigation__next">
+        <button
+          class="custom-swiper-next project-navigation__next"
+          :aria-label="copy.next"
+        >
           <img v-svg-inject alt="" src="../assets/next-item.svg" />
         </button>
       </div>
@@ -283,6 +382,22 @@ const buttonText = props.lang === "pl" ? "zobacz" : "view";
   width: 100%;
   overflow: visible;
 
+  &__counter {
+    display: none;
+
+    @include media-breakpoint-down(lg) {
+      display: block;
+      position: absolute;
+      top: 12px;
+      right: 16px;
+      z-index: 6;
+      color: #fff;
+      font-size: 20px;
+      line-height: 1;
+      pointer-events: none;
+    }
+  }
+
   > :deep(.swiper-wrapper) {
     display: flex;
 
@@ -314,7 +429,6 @@ const buttonText = props.lang === "pl" ? "zobacz" : "view";
       width: 100%;
       justify-content: space-between;
       padding: 0 16px;
-      mix-blend-mode: difference;
     }
   }
 
@@ -327,6 +441,7 @@ const buttonText = props.lang === "pl" ? "zobacz" : "view";
     align-items: center;
 
     :deep(.swiper-pagination-bullet) {
+      position: relative;
       width: 12px;
       height: 12px;
       background-color: #fff;
@@ -334,6 +449,12 @@ const buttonText = props.lang === "pl" ? "zobacz" : "view";
       opacity: 1;
       cursor: pointer;
       transition: background-color 0.3s;
+
+      &::after {
+        content: "";
+        position: absolute;
+        inset: -4px;
+      }
     }
 
     :deep(.swiper-pagination-bullet-active) {

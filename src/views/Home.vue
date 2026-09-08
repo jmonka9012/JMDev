@@ -52,7 +52,7 @@ const lang = props.data.acf.lang;
 const seo =
   lang === "pl"
     ? {
-        title: "Jacek Mońka — Front-end Developer | JavaScript, Vue.js, PHP",
+        title: "Jacek Mońka - Front-end Developer | JavaScript, Vue.js, PHP",
         description:
           "Jacek Mońka — Front-end Developer z ponad 3-letnim doświadczeniem komercyjnym w tworzeniu stron i aplikacji webowych w JavaScript, Vue.js i PHP.",
         canonical: "https://jmdev.pl/",
@@ -60,7 +60,7 @@ const seo =
         image: "https://jmdev.pl/files/image-3.jpg",
       }
     : {
-        title: "Jacek Mońka — Front-end Developer | JavaScript, Vue.js, PHP",
+        title: "Jacek Mońka - Front-end Developer | JavaScript, Vue.js, PHP",
         description:
           "Jacek Mońka is a Front-end Developer with over 3 years of commercial experience building websites and web applications with JavaScript, Vue.js and PHP.",
         canonical: "https://jmdev.pl/en",
