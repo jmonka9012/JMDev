@@ -59,7 +59,7 @@ useHead(
           htmlAttrs: {
             lang: errorLang.value,
           },
-          meta: [{ name: "robots", content: "noindex, nofollow" }],
+          meta: [{ name: "robots", content: "noindex, follow" }],
         },
   ),
 );

@@ -49,23 +49,27 @@ const props = defineProps({
 
 const lang = props.data.acf.lang;
 
+const socialImage = "https://jmdev.pl/files/jmdev-social-preview.png";
+
 const seo =
   lang === "pl"
     ? {
-        title: "Jacek Mońka - Front-end Developer | JavaScript, Vue.js, PHP",
+        title: "Jacek Mońka | Front-end Developer - JavaScript, Vue.js i PHP",
         description:
-          "Jacek Mońka — Front-end Developer z ponad 3-letnim doświadczeniem komercyjnym w tworzeniu stron i aplikacji webowych w JavaScript, Vue.js i PHP.",
+          "Jacek Mońka - Front-end Developer z ponad 3-letnim doświadczeniem komercyjnym w tworzeniu stron i aplikacji webowych w JavaScript, Vue.js i PHP.",
         canonical: "https://jmdev.pl/",
         locale: "pl_PL",
-        image: "https://jmdev.pl/files/image-3.jpg",
+        image: socialImage,
+        imageAlt: "Jacek Mońka - Front-end Developer",
       }
     : {
-        title: "Jacek Mońka - Front-end Developer | JavaScript, Vue.js, PHP",
+        title: "Jacek Mońka | Front-end Developer - JavaScript, Vue.js & PHP",
         description:
           "Jacek Mońka is a Front-end Developer with over 3 years of commercial experience building websites and web applications with JavaScript, Vue.js and PHP.",
         canonical: "https://jmdev.pl/en",
         locale: "en_GB",
-        image: "https://jmdev.pl/files/image-3.jpg",
+        image: socialImage,
+        imageAlt: "Jacek Mońka - Front-end Developer",
       };
 
 const personSchema = {
@@ -74,6 +78,10 @@ const personSchema = {
   name: "Jacek Mońka",
   url: "https://jmdev.pl/",
   jobTitle: "Front-end Developer",
+  description: seo.description,
+  image: socialImage,
+  inLanguage: lang,
+  knowsAbout: ["JavaScript", "Vue.js", "PHP", "WordPress"],
 };
 
 useHead({
@@ -94,12 +102,18 @@ useHead({
     { property: "og:title", content: seo.title },
     { property: "og:description", content: seo.description },
     { property: "og:image", content: seo.image },
-    { property: "og:image:width", content: "976" },
-    { property: "og:image:height", content: "1072" },
+    { property: "og:image:width", content: "1499" },
+    { property: "og:image:height", content: "804" },
+    { property: "og:image:alt", content: seo.imageAlt },
+    {
+      property: "og:locale:alternate",
+      content: lang === "pl" ? "en_GB" : "pl_PL",
+    },
     { name: "twitter:card", content: "summary_large_image" },
     { name: "twitter:title", content: seo.title },
     { name: "twitter:description", content: seo.description },
     { name: "twitter:image", content: seo.image },
+    { name: "twitter:image:alt", content: seo.imageAlt },
   ],
   link: [
     { rel: "canonical", href: seo.canonical },

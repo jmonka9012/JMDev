@@ -144,7 +144,6 @@ const copy = computed(() =>
       :hreflang="copy.targetLang"
       :lang="copy.targetLang"
       :aria-label="copy.languageSwitchLabel"
-      rel="alternate"
       class="lang-swap"
     >
       {{ copy.languageSwitchText }}
