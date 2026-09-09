@@ -35,9 +35,10 @@ const buttonText = props.lang === "pl" ? "Napisz do mnie" : "Contact me";
 </script>
 
 <template>
-  <ScrollBevelContainer :id="myId">
+  <ScrollBevelContainer :id="myId" as="section" labelled-by="about-me-heading">
     <ScrambleText
       class="mb-15"
+      id="about-me-heading"
       tag="h2"
       mode="write"
       :text="data.heading"

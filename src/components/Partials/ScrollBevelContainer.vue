@@ -3,6 +3,14 @@ import CursorBevelBox from "./CursorBevelBox.vue";
 import { ref, onMounted, onUnmounted } from "vue";
 
 const props = defineProps({
+  as: {
+    type: String,
+    default: "div",
+  },
+  labelledBy: {
+    type: String,
+    required: false,
+  },
   blur: {
     type: Boolean,
     default: true,
@@ -95,8 +103,10 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <div
+  <component
+    :is="as"
     ref="scrollContainer"
+    :aria-labelledby="labelledBy"
     :data-ascii-tracked="tracked ? 'filled-box' : undefined"
     class="container scroll-bevel"
     :class="{ 'bg-blur': blur }"
@@ -115,7 +125,7 @@ onUnmounted(() => {
     <div class="scroll-bevel__content">
       <slot></slot>
     </div>
-  </div>
+  </component>
 </template>
 
 <style scoped lang="scss">

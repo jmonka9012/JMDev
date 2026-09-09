@@ -40,12 +40,19 @@ onUnmounted(() => {
   <ScrollBevelContainer
     :tracked="false"
     :id="myId"
+    as="section"
+    labelled-by="experience-heading"
     v-on-enter="animateExperience"
   >
-    <ScrambleText class="mb-20" tag="h2" :text="data.heading"></ScrambleText>
+    <ScrambleText
+      id="experience-heading"
+      class="mb-20"
+      tag="h2"
+      :text="data.heading"
+    ></ScrambleText>
 
     <div class="mb-30 mt-30">
-      <div class="timeline">
+      <div class="timeline" aria-hidden="true">
         <div v-for="year in years" :key="year" class="timeline__year">
           <span>{{ year }}</span>
         </div>

@@ -170,10 +170,15 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <ScrollBevelContainer :id="myId">
+  <ScrollBevelContainer
+    :id="myId"
+    as="section"
+    labelled-by="technologies-heading"
+  >
     <div>
       <ScrambleText
         class="mb-15"
+        id="technologies-heading"
         tag="h2"
         mode="write"
         :text="data.heading"
@@ -200,7 +205,7 @@ onUnmounted(() => {
           </div>
           <ScrambleText
             :ref="setTechTitleRef"
-            tag="h5"
+            tag="h3"
             mode="write"
             class="tech__title"
             :text="tech.title"

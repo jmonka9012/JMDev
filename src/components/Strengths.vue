@@ -27,9 +27,10 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <ScrollBevelContainer :id="myId">
+  <ScrollBevelContainer :id="myId" as="section" labelled-by="strengths-heading">
     <ScrambleText
       class="mb-15"
+      id="strengths-heading"
       tag="h2"
       mode="write"
       :text="data.heading"

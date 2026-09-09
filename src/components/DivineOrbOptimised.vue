@@ -737,7 +737,7 @@ onUnmounted(() => {
 });
 </script>
 <template>
-  <div ref="container"></div>
+  <div ref="container" aria-hidden="true"></div>
 </template>
 <style scoped lang="scss">
 :deep(canvas) {

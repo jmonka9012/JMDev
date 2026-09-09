@@ -173,12 +173,28 @@ onUnmounted(() => {
 });
 
 const buttonText = props.lang === "pl" ? "zobacz" : "view";
+
+const normalizeProjectContent = (content) =>
+  content
+    .replace(/<h[1-3](\b[^>]*)>/gi, "<h4$1>")
+    .replace(/<\/h[1-3]>/gi, "<\/h4>");
 </script>
 
 <template>
-  <div ref="sliderContainer" class="w-full relative" :id="myId">
+  <section
+    ref="sliderContainer"
+    class="w-full relative"
+    :id="myId"
+    aria-labelledby="projects-heading"
+  >
     <div class="container px-[40px] mx-auto lg:px-[26px]">
-      <ScrambleText class="mb-6" mode="write" tag="h2" :text="data.heading" />
+      <ScrambleText
+        id="projects-heading"
+        class="mb-6"
+        mode="write"
+        tag="h2"
+        :text="data.heading"
+      />
     </div>
 
     <div class="container p-0 relative">
@@ -226,7 +242,7 @@ const buttonText = props.lang === "pl" ? "zobacz" : "view";
           :key="post.id"
           class="slide-wrapper projects-swiper__slide"
         >
-          <div class="h-full w-full relative bg-blur">
+          <article class="h-full w-full relative bg-blur">
             <div class="container project-container mb-0">
               <ScrambleText
                 :ref="
@@ -238,14 +254,18 @@ const buttonText = props.lang === "pl" ? "zobacz" : "view";
                 :once="false"
                 :text="post.title"
                 :scramble-time="400"
-                class="mb-12 text-center"
+                class="mb-12 text-center h2"
                 mode="write"
-                tag="h2"
+                tag="h3"
               />
               <div class="project">
                 <div class="project__left">
-                  <div class="post-content mb-10" v-html="post.content"></div>
+                  <div
+                    class="post-content mb-10"
+                    v-html="normalizeProjectContent(post.content)"
+                  ></div>
                   <CustomButton
+                    v-if="post.acf.link"
                     :link="post.acf.link"
                     :text="buttonText"
                   ></CustomButton>
@@ -282,7 +302,7 @@ const buttonText = props.lang === "pl" ? "zobacz" : "view";
                 </div>
               </div>
             </div>
-          </div>
+          </article>
         </swiper-slide>
       </swiper>
       <div
@@ -314,7 +334,7 @@ const buttonText = props.lang === "pl" ? "zobacz" : "view";
         </button>
       </div>
     </div>
-  </div>
+  </section>
 </template>
 
 <style lang="scss" scoped>
@@ -375,6 +395,14 @@ const buttonText = props.lang === "pl" ? "zobacz" : "view";
   :deep(h4) {
     margin-top: 1.5rem;
     margin-bottom: 0.5rem;
+  }
+
+  :deep(h4.wp-block-heading) {
+    font-size: 36px;
+
+    @include media-breakpoint-down(lg) {
+      font-size: 24px;
+    }
   }
 }
 
