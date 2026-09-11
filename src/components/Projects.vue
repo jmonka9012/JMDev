@@ -25,8 +25,8 @@ import "swiper/css/effect-cube";
 import "swiper/css/effect-fade";
 
 import ScrambleText from "./Partials/ScrambleText.vue";
-import ScrollBevelContainer from "./Partials/ScrollBevelContainer.vue";
 import CustomButton from "./Partials/CustomButton.vue";
+import projectImageManifest from "../data/project-images.json";
 
 const myId = "projects";
 
@@ -50,8 +50,9 @@ const activeIndex = ref(0);
 
 const sliderContainer = ref(null);
 const isSliderVisible = useVisibility(sliderContainer);
-const innerSwipers = new Set();
-const pausedInnerSwipers = new Set();
+const renderedProjectIndexes = ref(new Set([0]));
+const innerSwipers = new Map();
+let outgoingProjectIndex = null;
 
 const innerAutoplay = {
   delay: 300,
@@ -82,31 +83,72 @@ const copy =
         slide: "Project {{index}} of {{slidesLength}}",
       };
 
-const onInnerSwiperInit = (swiper) => {
-  innerSwipers.add(swiper);
+// The images are landscape and fill a taller frame with object-fit: cover.
+// The larger sizes value preserves vertical detail after that crop.
+const projectImageSizes = "(max-width: 991.98px) 140vw, 70vw";
 
-  if (motionPaused.value) {
-    pausedInnerSwipers.add(swiper);
-    swiper.autoplay?.stop();
+const updateRenderedProjectIndexes = (index, outgoingIndex = null) => {
+  const indexes = new Set([index]);
+
+  if (index > 0) indexes.add(index - 1);
+  if (index < props.projects.length - 1) indexes.add(index + 1);
+  if (outgoingIndex !== null) indexes.add(outgoingIndex);
+
+  renderedProjectIndexes.value = indexes;
+};
+
+const shouldRenderGallery = (index) => renderedProjectIndexes.value.has(index);
+
+const getProjectPhotos = (post) => {
+  return ["photo_1", "photo_2", "photo_3"]
+    .map((key) => post.acf?.[key])
+    .filter(Boolean)
+    .map((src) => {
+      const optimized = projectImageManifest[src];
+
+      return {
+        src,
+        width: optimized?.width,
+        height: optimized?.height,
+        avifSrcset: optimized?.avifSrcset,
+        webpSrcset: optimized?.webpSrcset,
+      };
+    });
+};
+
+const syncInnerAutoplay = () => {
+  innerSwipers.forEach((swiper, index) => {
+    if (swiper.destroyed || !swiper.autoplay) return;
+
+    const shouldPlay =
+      !motionPaused.value &&
+      isSliderVisible.value &&
+      index === activeIndex.value;
+
+    if (shouldPlay && !swiper.autoplay.running) {
+      swiper.autoplay.start();
+    } else if (!shouldPlay && swiper.autoplay.running) {
+      swiper.autoplay.stop();
+    }
+  });
+};
+
+const onInnerSwiperInit = (swiper, index) => {
+  innerSwipers.set(index, swiper);
+  nextTick(syncInnerAutoplay);
+};
+
+const onInnerSwiperDestroy = (swiper, index) => {
+  if (innerSwipers.get(index) === swiper) {
+    innerSwipers.delete(index);
   }
 };
 
-watch(motionPaused, (isPaused) => {
-  if (isPaused) {
-    innerSwipers.forEach((swiper) => {
-      if (swiper.destroyed || !swiper.autoplay?.running) return;
-
-      pausedInnerSwipers.add(swiper);
-      swiper.autoplay.stop();
-    });
-    return;
-  }
-
-  pausedInnerSwipers.forEach((swiper) => {
-    if (!swiper.destroyed) swiper.autoplay?.start();
-  });
-  pausedInnerSwipers.clear();
-});
+watch(
+  [motionPaused, isSliderVisible, activeIndex],
+  () => nextTick(syncInnerAutoplay),
+  { flush: "post" },
+);
 
 const focusableSelector =
   "a[href], area[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), iframe, object, embed, [contenteditable], [tabindex]";
@@ -147,16 +189,31 @@ const tryPlayAnimation = () => {
 
 const onSwiperInit = (swiper) => {
   activeIndex.value = swiper.realIndex;
-  nextTick(() => updateSlideFocusability(swiper));
+  updateRenderedProjectIndexes(activeIndex.value);
+  nextTick(() => {
+    updateSlideFocusability(swiper);
+    syncInnerAutoplay();
+  });
   setTimeout(() => {
     tryPlayAnimation();
   }, 100);
 };
 
 const onSlideChange = (swiper) => {
+  outgoingProjectIndex = activeIndex.value;
   activeIndex.value = swiper.realIndex;
-  nextTick(() => updateSlideFocusability(swiper));
+  updateRenderedProjectIndexes(activeIndex.value, outgoingProjectIndex);
+  nextTick(() => {
+    updateSlideFocusability(swiper);
+    syncInnerAutoplay();
+  });
   tryPlayAnimation();
+};
+
+const onSlideChangeTransitionEnd = () => {
+  outgoingProjectIndex = null;
+  updateRenderedProjectIndexes(activeIndex.value);
+  nextTick(syncInnerAutoplay);
 };
 
 onMounted(() => {
@@ -169,7 +226,6 @@ onMounted(() => {
 onUnmounted(() => {
   unregisterElement(myId);
   innerSwipers.clear();
-  pausedInnerSwipers.clear();
 });
 
 const buttonText = props.lang === "pl" ? "zobacz" : "view";
@@ -234,6 +290,7 @@ const normalizeProjectContent = (content) =>
         class="projects-swiper"
         virtual
         @slideChange="onSlideChange"
+        @slideChangeTransitionEnd="onSlideChangeTransitionEnd"
         @swiper="onSwiperInit"
         @after-init="refreshState"
       >
@@ -272,6 +329,7 @@ const normalizeProjectContent = (content) =>
                 </div>
                 <div class="project__right">
                   <swiper
+                    v-if="shouldRenderGallery(index)"
                     :allow-touch-move="false"
                     :autoplay="innerAutoplay"
                     :loop="true"
@@ -280,22 +338,40 @@ const normalizeProjectContent = (content) =>
                     :speed="2000"
                     class="inner-swiper h-full"
                     effect="cube"
-                    @swiper="onInnerSwiperInit"
+                    @swiper="(swiper) => onInnerSwiperInit(swiper, index)"
+                    @before-destroy="
+                      (swiper) => onInnerSwiperDestroy(swiper, index)
+                    "
                     @after-init="refreshState"
                   >
-                    <swiper-slide class="h-full">
+                    <swiper-slide
+                      v-for="photo in getProjectPhotos(post)"
+                      :key="photo.src"
+                      class="h-full"
+                    >
                       <div class="h-full project__gallery">
-                        <img :src="post.acf.photo_1" alt="" />
-                      </div>
-                    </swiper-slide>
-                    <swiper-slide class="h-full">
-                      <div class="h-full project__gallery">
-                        <img :src="post.acf.photo_2" alt="" />
-                      </div>
-                    </swiper-slide>
-                    <swiper-slide class="h-full">
-                      <div class="h-full project__gallery">
-                        <img :src="post.acf.photo_3" alt="" />
+                        <picture class="project__picture">
+                          <source
+                            v-if="photo.avifSrcset"
+                            :srcset="photo.avifSrcset"
+                            :sizes="projectImageSizes"
+                            type="image/avif"
+                          />
+                          <source
+                            v-if="photo.webpSrcset"
+                            :srcset="photo.webpSrcset"
+                            :sizes="projectImageSizes"
+                            type="image/webp"
+                          />
+                          <img
+                            :src="photo.src"
+                            :width="photo.width"
+                            :height="photo.height"
+                            alt=""
+                            decoding="async"
+                            loading="lazy"
+                          />
+                        </picture>
                       </div>
                     </swiper-slide>
                   </swiper>
@@ -369,6 +445,12 @@ const normalizeProjectContent = (content) =>
       margin: 0 auto;
       overflow: hidden;
     }
+  }
+
+  &__picture {
+    display: block;
+    width: 100%;
+    height: 100%;
   }
 
   &__left {
