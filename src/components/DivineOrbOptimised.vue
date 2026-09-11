@@ -20,6 +20,11 @@ const charImageWidth = splitAscii[0].length;
 const charImageHeight = splitAscii.length;
 let p5Instance = null;
 const container = ref(null);
+let documentResizeObserver = null;
+let documentResizeTimer = null;
+let refreshDocumentGrid = null;
+
+const DOCUMENT_RESIZE_DEBOUNCE = 250;
 
 const charMap = {
   ".": {
@@ -175,6 +180,8 @@ const sketch = (p) => {
   let bgDataTexture;
   let bgGeometry;
   let bgShader;
+  let textureDirty = false;
+  let isGridReady = false;
   const colorIndexMap = new Map();
   let linesPerSecond = p.ceil(p.width / lineConfig.widthRatioConst);
   let framesForLine = p.ceil(60 / linesPerSecond);
@@ -182,12 +189,21 @@ const sketch = (p) => {
   ////////////////////////////////
   //////           INIT
   ////////////////////////////////
+  const getDocumentHeight = () => {
+    return Math.max(
+      p.height,
+      document.documentElement?.scrollHeight || 0,
+      document.body?.scrollHeight || 0,
+    );
+  };
+
   const initGridAndTexture = () => {
     linesPerSecond = p.ceil(p.width / lineConfig.widthRatioConst);
     framesForLine = p.ceil((1 / linesPerSecond) * 60);
 
     bgCols = Math.ceil(p.width / pastedCharW);
-    bgRows = Math.ceil((p.height * 10) / pastedCharH);
+    // One extra row prevents a rounding gap at the bottom of the document.
+    bgRows = Math.ceil(getDocumentHeight() / pastedCharH) + 1;
 
     gridPixelWidth = bgCols * pastedCharW;
     gridPixelHeight = bgRows * pastedCharH;
@@ -336,6 +352,7 @@ const sketch = (p) => {
       });
     }
     bgDataTexture.updatePixels();
+    textureDirty = false;
     bgDataTexture.drawingContext.imageSmoothingEnabled = false;
 
     // Build main container
@@ -353,6 +370,15 @@ const sketch = (p) => {
 
     lines = [];
   };
+
+  const refreshGridAndTexture = () => {
+    if (!isGridReady) return;
+
+    updateTrackedElements();
+    initGridAndTexture();
+  };
+
+  refreshDocumentGrid = refreshGridAndTexture;
 
   ////////////////
   // SETUP
@@ -434,6 +460,7 @@ const sketch = (p) => {
     initGridAndTexture();
 
     bgShader = p.createShader(bgVertShader, bgFragShader);
+    isGridReady = true;
   };
 
   ////////////////////////////////
@@ -465,10 +492,12 @@ const sketch = (p) => {
             if (
               bgDataTexture.pixels[index + 2] !== 255 &&
               bgDataTexture.pixels[index + 2] !== 150 &&
-              bgDataTexture.pixels[index + 2] !== 140
+              bgDataTexture.pixels[index + 2] !== 140 &&
+              bgDataTexture.pixels[index + 3] !== 0
             ) {
               // Blue = 140 - line
               bgDataTexture.pixels[index + 3] = 0;
+              textureDirty = true;
             }
           }
         }
@@ -506,6 +535,7 @@ const sketch = (p) => {
             bgDataTexture.pixels[index + 1] = colorIndex;
             bgDataTexture.pixels[index + 2] = 120;
             bgDataTexture.pixels[index + 3] = 255;
+            textureDirty = true;
           }
         }
 
@@ -523,9 +553,11 @@ const sketch = (p) => {
           const index = (clearRow * bgCols + clearCol) * 4;
           if (
             bgDataTexture.pixels[index + 2] !== 255 &&
-            bgDataTexture.pixels[index + 2] !== 150
+            bgDataTexture.pixels[index + 2] !== 150 &&
+            bgDataTexture.pixels[index + 3] !== 0
           ) {
             bgDataTexture.pixels[index + 3] = 0;
+            textureDirty = true;
           }
         }
       }
@@ -535,7 +567,10 @@ const sketch = (p) => {
       l.col += l.speed * l.dirX;
     }
 
-    bgDataTexture.updatePixels();
+    if (textureDirty) {
+      bgDataTexture.updatePixels();
+      textureDirty = false;
+    }
 
     p.background(0);
 
@@ -694,11 +729,29 @@ const sketch = (p) => {
 
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
-      updateTrackedElements();
-      initGridAndTexture();
+      refreshGridAndTexture();
     }, 250);
   };
 };
+
+const scheduleDocumentGridRefresh = () => {
+  clearTimeout(documentResizeTimer);
+  documentResizeTimer = setTimeout(() => {
+    refreshDocumentGrid?.();
+  }, DOCUMENT_RESIZE_DEBOUNCE);
+};
+
+const startDocumentResizeObserver = () => {
+  if (typeof ResizeObserver === "undefined" || !document.body) return;
+
+  documentResizeObserver = new ResizeObserver(scheduleDocumentGridRefresh);
+  documentResizeObserver.observe(document.body);
+
+  document.fonts?.ready.then(() => {
+    if (documentResizeObserver) scheduleDocumentGridRefresh();
+  });
+};
+
 const handleScroll = (e) => {
   if (!p5Instance) return;
 
@@ -720,11 +773,17 @@ onMounted(async () => {
     if (container.value) {
       p5Instance = new p5(sketch, container.value);
       lenis.on("scroll", handleScroll);
+      startDocumentResizeObserver();
     }
   }
 });
 
 onUnmounted(() => {
+  clearTimeout(documentResizeTimer);
+  documentResizeObserver?.disconnect();
+  documentResizeObserver = null;
+  refreshDocumentGrid = null;
+
   window.removeEventListener("mousemove", onFirstInteraction);
   window.removeEventListener("touchstart", onFirstInteraction);
 
