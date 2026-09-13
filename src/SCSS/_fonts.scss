@@ -1,11 +1,13 @@
 @font-face {
   font-family: Determination;
-  src: url('../assets/fonts/determination.ttf');
+  src:
+    url("../assets/fonts/determination.woff2") format("woff2"),
+    url("../assets/fonts/determination.ttf") format("truetype");
   font-weight: 400;
 }
 
 @font-face {
   font-family: Press Start;
-  src: url('../assets/fonts/PressStart2P.ttf');
+  src: url("../assets/fonts/PressStart2P.ttf");
   font-weight: 400;
 }

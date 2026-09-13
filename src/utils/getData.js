@@ -10,9 +10,7 @@ export const getJsonUrl = (routePath) => {
 
 export const getPageData = async (routePath) => {
   const jsonUrl = getJsonUrl(routePath);
-  const isServer = typeof window === "undefined";
-
-  if (isServer) {
+  if (import.meta.env.SSR) {
     // During the build, read directly from disk.
     const fs = await import("fs");
     const path = await import("path");

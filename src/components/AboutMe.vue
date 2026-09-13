@@ -5,7 +5,8 @@ import ScrambleText from "./Partials/ScrambleText.vue";
 import BevelBox from "./Partials/BevelBox.vue";
 import { useElementsRegistry } from "../utils/useRegistry.js";
 const { registerElement, unregisterElement } = useElementsRegistry();
-import { onMounted, onUnmounted } from "vue";
+import { computed, onMounted, onUnmounted } from "vue";
+import imageManifest from "../data/project-images.json";
 
 const myId = "about-me";
 
@@ -32,6 +33,8 @@ onUnmounted(() => {
 });
 
 const buttonText = props.lang === "pl" ? "Napisz do mnie" : "Contact me";
+const optimizedPhoto = computed(() => imageManifest[props.data.my_photo]);
+const photoSizes = "(max-width: 767.98px) 200px, 260px";
 </script>
 
 <template>
@@ -48,7 +51,28 @@ const buttonText = props.lang === "pl" ? "Napisz do mnie" : "Contact me";
         <div class="text-lg text-justify">{{ data.text }}</div>
       </div>
       <BevelBox class="about-me-1__img">
-        <img :src="data.my_photo" :alt="data.my_photo_alt" />
+        <picture>
+          <source
+            v-if="optimizedPhoto?.avifSrcset"
+            type="image/avif"
+            :srcset="optimizedPhoto.avifSrcset"
+            :sizes="photoSizes"
+          />
+          <source
+            v-if="optimizedPhoto?.webpSrcset"
+            type="image/webp"
+            :srcset="optimizedPhoto.webpSrcset"
+            :sizes="photoSizes"
+          />
+          <img
+            :src="data.my_photo"
+            :alt="data.my_photo_alt"
+            :width="optimizedPhoto?.width"
+            :height="optimizedPhoto?.height"
+            loading="lazy"
+            decoding="async"
+          />
+        </picture>
       </BevelBox>
     </div>
     <div class="about-me-2">

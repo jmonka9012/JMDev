@@ -40,6 +40,7 @@ const wrapper = ref(null);
 const techTitleRefs = ref([]);
 const isVisible = useVisibility(wrapper);
 const hasPlayed = ref(false);
+const iconsReady = ref(false);
 
 const activeSvgIndexes = ref(new Set());
 const glowIndexes = ref(new Set());
@@ -47,6 +48,7 @@ const glowIndexes = ref(new Set());
 let glowIntervalId = null;
 let glowTimeouts = [];
 let revealTimeouts = [];
+let iconLoadObserver = null;
 
 const clearGlowTimeouts = () => {
   glowTimeouts.forEach(clearTimeout);
@@ -156,6 +158,21 @@ watch(
 );
 
 onMounted(() => {
+  if (typeof IntersectionObserver === "undefined") {
+    iconsReady.value = true;
+  } else if (wrapper.value) {
+    iconLoadObserver = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        iconsReady.value = true;
+        iconLoadObserver?.disconnect();
+        iconLoadObserver = null;
+      },
+      { rootMargin: "1000px 0px" },
+    );
+    iconLoadObserver.observe(wrapper.value);
+  }
+
   registerElement({
     id: myId,
     title: props.data.menu_name,
@@ -163,6 +180,7 @@ onMounted(() => {
 });
 
 onUnmounted(() => {
+  iconLoadObserver?.disconnect();
   clearRevealTimeouts();
   stopRandomGlowLoop();
   unregisterElement(myId);
@@ -201,7 +219,14 @@ onUnmounted(() => {
               'is-glowing': glowIndexes.has(index),
             }"
           >
-            <img v-svg-inject :src="tech.featured_media" alt="" />
+            <img
+              v-if="iconsReady"
+              v-svg-inject
+              :src="tech.featured_media"
+              alt=""
+              loading="lazy"
+              decoding="async"
+            />
           </div>
           <ScrambleText
             :ref="setTechTitleRef"

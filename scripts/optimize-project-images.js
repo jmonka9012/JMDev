@@ -22,6 +22,12 @@ const projectDataFiles = [
 ];
 
 const targetWidths = [720, 1200, 1600];
+const additionalImages = [
+  {
+    url: "/files/image-3.jpg",
+    widths: [480, 768],
+  },
+];
 
 const readProjects = async () => {
   const projects = [];
@@ -90,7 +96,7 @@ const encodeVariant = async (sourcePath, outputPath, width, format) => {
   await pipeline.toFile(outputPath);
 };
 
-const optimizeImage = async (imageUrl) => {
+const optimizeImage = async (imageUrl, requestedWidths = targetWidths) => {
   const relativePath = decodeURIComponent(imageUrl.replace(/^\/+/, ""));
   const sourcePath = path.resolve(publicDir, relativePath);
   const filesRoot = publicFilesDir + path.sep;
@@ -111,7 +117,7 @@ const optimizeImage = async (imageUrl) => {
   const extension = path.extname(sourcePath);
   const basename = path.basename(sourcePath, extension);
   const widths = [
-    ...new Set(targetWidths.map((width) => Math.min(width, sourceWidth))),
+    ...new Set(requestedWidths.map((width) => Math.min(width, sourceWidth))),
   ];
   const variants = {
     avif: [],
@@ -158,11 +164,14 @@ const run = async () => {
   await fs.mkdir(path.dirname(manifestPath), { recursive: true });
 
   const projects = await readProjects();
-  const imageUrls = collectImageUrls(projects);
+  const imageConfigs = [
+    ...collectImageUrls(projects).map((url) => ({ url, widths: targetWidths })),
+    ...additionalImages,
+  ];
   const manifest = {};
 
-  for (const imageUrl of imageUrls) {
-    manifest[imageUrl] = await optimizeImage(imageUrl);
+  for (const { url, widths } of imageConfigs) {
+    manifest[url] = await optimizeImage(url, widths);
   }
 
   await fs.writeFile(manifestPath, JSON.stringify(manifest, null, 2) + "\n");
@@ -171,7 +180,7 @@ const run = async () => {
   const webpBytes = await directorySize(".webp");
 
   console.log(
-    `Optimized ${imageUrls.length} project images. AVIF: ${(
+    `Optimized ${imageConfigs.length} images. AVIF: ${(
       avifBytes /
       1024 /
       1024

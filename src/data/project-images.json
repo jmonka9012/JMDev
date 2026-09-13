@@ -178,5 +178,11 @@
     "height": 1256,
     "avifSrcset": "/files/optimized/Zrzut-ekranu-2026-08-24-172242-720w.avif 720w, /files/optimized/Zrzut-ekranu-2026-08-24-172242-1200w.avif 1200w, /files/optimized/Zrzut-ekranu-2026-08-24-172242-1600w.avif 1600w",
     "webpSrcset": "/files/optimized/Zrzut-ekranu-2026-08-24-172242-720w.webp 720w, /files/optimized/Zrzut-ekranu-2026-08-24-172242-1200w.webp 1200w, /files/optimized/Zrzut-ekranu-2026-08-24-172242-1600w.webp 1600w"
+  },
+  "/files/image-3.jpg": {
+    "width": 976,
+    "height": 1072,
+    "avifSrcset": "/files/optimized/image-3-480w.avif 480w, /files/optimized/image-3-768w.avif 768w",
+    "webpSrcset": "/files/optimized/image-3-480w.webp 480w, /files/optimized/image-3-768w.webp 768w"
   }
 }

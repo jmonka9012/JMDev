@@ -774,7 +774,7 @@ const handleScroll = (e) => {
 
 onMounted(async () => {
   if (typeof window !== "undefined") {
-    const p5 = (await import("p5")).default;
+    const p5 = (await import("../utils/p5DivineOrb.js")).default;
 
     updateTrackedElements();
 
