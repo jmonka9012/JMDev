@@ -25,6 +25,7 @@ let documentResizeTimer = null;
 let refreshDocumentGrid = null;
 
 const DOCUMENT_RESIZE_DEBOUNCE = 250;
+const MOBILE_LAYOUT_QUERY = "(max-width: 991.98px)";
 
 const charMap = {
   ".": {
@@ -189,6 +190,16 @@ const sketch = (p) => {
   ////////////////////////////////
   //////           INIT
   ////////////////////////////////
+  const syncCanvasPixelDensity = () => {
+    const targetDensity = window.matchMedia(MOBILE_LAYOUT_QUERY).matches
+      ? 1
+      : p.displayDensity();
+
+    if (p.pixelDensity() !== targetDensity) {
+      p.pixelDensity(targetDensity);
+    }
+  };
+
   const getDocumentHeight = () => {
     return Math.max(
       p.height,
@@ -387,6 +398,7 @@ const sketch = (p) => {
   p.setup = () => {
     p.pixelDensity(1);
     p.createCanvas(p.windowWidth, p.windowHeight, p.WEBGL);
+    syncCanvasPixelDensity();
 
     atlas = p.createGraphics(
       uniqueChars.length * charW,
@@ -726,6 +738,7 @@ const sketch = (p) => {
 
   p.windowResized = () => {
     p.resizeCanvas(p.windowWidth, p.windowHeight);
+    syncCanvasPixelDensity();
 
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(() => {
