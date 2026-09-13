@@ -63,7 +63,6 @@ onMounted(() => {
   border-radius: 50%;
   pointer-events: none !important;
   z-index: 999999 !important;
-  will-change: transform;
   mix-blend-mode: difference;
 
   opacity: 0;
@@ -71,6 +70,7 @@ onMounted(() => {
 
   &.is-active {
     opacity: 1;
+    will-change: transform;
   }
 }
 </style>

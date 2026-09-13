@@ -115,9 +115,14 @@ const triggerAnimation = async () => {
 };
 
 watch(isVisible, (newVal) => {
+  if (!newVal) {
+    if (isAnimating.value) showStableText();
+    return;
+  }
+
   if (!props.autoplay) return;
 
-  if (newVal && (!props.once || !hasAnimated.value)) {
+  if (!props.once || !hasAnimated.value) {
     triggerAnimation();
   }
 });

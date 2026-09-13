@@ -27,6 +27,7 @@ const props = defineProps({
 const allSides = ["top", "right", "bottom", "left"];
 const mousePos = inject("mousePos");
 const bevelBox = ref();
+const isBevelVisible = ref(false);
 const boxDims = ref({ height: 0, width: 0, cornerDist: 0 });
 let rect = null;
 let clipQuickTo = null;
@@ -117,6 +118,7 @@ watch(
 watch(
   () => bevelBox.value?.isVisible,
   (newVisible) => {
+    isBevelVisible.value = Boolean(newVisible);
     if (newVisible) {
       updateDistance(true);
     }
@@ -148,6 +150,7 @@ onUnmounted(() => {
   <BevelBox
     ref="bevelBox"
     class="bevel-box"
+    :class="{ 'is-visible': isBevelVisible }"
     :style="props.bevelStyle"
     :cbb-child="true"
     :active-sides="props.corner"
@@ -166,7 +169,9 @@ onUnmounted(() => {
   height: 100%;
   pointer-events: none;
 
-  // GPU acceleration for mask rendering reduces layout and paint work.
-  will-change: clip-path;
+  &.is-visible {
+    // Reserve a compositor layer only while the frame can be animated.
+    will-change: clip-path;
+  }
 }
 </style>

@@ -5,13 +5,39 @@ import { motionPaused } from "./motionPreference.js";
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
+const activeScrambles = new Map();
+let scrambleFrame = null;
+
+const renderScrambleCharacter = (element) => {
+  element.textContent =
+    ASCII_STRING_NO_JP[Math.floor(Math.random() * ASCII_STRING_NO_JP.length)];
+};
+
+const scheduleScrambleFrame = () => {
+  if (scrambleFrame !== null || activeScrambles.size === 0) return;
+
+  scrambleFrame = requestAnimationFrame(() => {
+    scrambleFrame = null;
+
+    activeScrambles.forEach((element, state) => {
+      if (!state.isActive || !element?.isConnected || motionPaused.value) {
+        activeScrambles.delete(state);
+        return;
+      }
+
+      renderScrambleCharacter(element);
+    });
+
+    scheduleScrambleFrame();
+  });
+};
+
 export const runScrambleLoop = (state, element) => {
   if (!state.isActive || !element || motionPaused.value) return;
 
-  element.textContent =
-    ASCII_STRING_NO_JP[Math.floor(Math.random() * ASCII_STRING_NO_JP.length)];
-
-  requestAnimationFrame(() => runScrambleLoop(state, element));
+  activeScrambles.set(state, element);
+  renderScrambleCharacter(element);
+  scheduleScrambleFrame();
 };
 
 export function useScramble() {
