@@ -1,16 +1,9 @@
 <script setup>
 import BevelBox from "./BevelBox.vue";
 import { gsap } from "gsap";
-import {
-  ref,
-  onMounted,
-  onUnmounted,
-  inject,
-  computed,
-  nextTick,
-  watch,
-} from "vue";
+import { ref, onMounted, onUnmounted, inject, computed, watch } from "vue";
 import { motionPaused } from "../../utils/motionPreference.js";
+import { subscribeBevelPointer } from "../../utils/bevelFrameScheduler.js";
 
 const props = defineProps({
   corner: {
@@ -36,6 +29,9 @@ const mousePos = inject("mousePos");
 const bevelBox = ref();
 const boxDims = ref({ height: 0, width: 0, cornerDist: 0 });
 let rect = null;
+let clipQuickTo = null;
+let stopPointerSubscription = () => {};
+const clipState = { ratio: 0 };
 const activeSides = computed(() => props.corner.split(" "));
 
 const handleEmit = (payload) => {
@@ -46,11 +42,43 @@ const handleEmit = (payload) => {
 
 const updateDimensions = () => {
   if (!bevelBox.value || !rect) return;
-  boxDims.value.height = bevelBox.value.$el?.offsetHeight || 0;
-  boxDims.value.width = bevelBox.value.$el?.offsetWidth || 0;
+  boxDims.value.height = rect.height;
+  boxDims.value.width = rect.width;
 };
 
-let ticking = false;
+const applyClipRatio = () => {
+  if (!bevelBox.value?.$el) return;
+
+  const insetValues = [0, 0, 0, 0];
+  allSides.forEach((sideString, index) => {
+    if (!activeSides.value.includes(sideString)) return;
+    insetValues[(index + 2) % 4] = clipState.ratio;
+  });
+
+  bevelBox.value.$el.style.clipPath = `inset(${insetValues[0]}% ${insetValues[1]}% ${insetValues[2]}% ${insetValues[3]}%)`;
+};
+
+const setClipRatio = (ratio, isInstant) => {
+  if (!clipQuickTo) {
+    clipState.ratio = ratio;
+    applyClipRatio();
+    clipQuickTo = gsap.quickTo(clipState, "ratio", {
+      duration: typeof props.scrollRatio === "number" ? 0.5 : 2,
+      ease: "power2.out",
+      onUpdate: applyClipRatio,
+    });
+    return;
+  }
+
+  if (motionPaused.value || isInstant) {
+    clipQuickTo.tween.pause();
+    clipState.ratio = ratio;
+    applyClipRatio();
+    return;
+  }
+
+  clipQuickTo(ratio);
+};
 
 const updateDistance = (isInstant = false) => {
   if (rect) {
@@ -63,71 +91,26 @@ const updateDistance = (isInstant = false) => {
       );
     }
 
-    let insetValues = [0, 0, 0, 0];
+    const ratio = Math.max(
+      0,
+      Math.min(
+        100,
+        isScrollOverride
+          ? props.scrollRatio
+          : (boxDims.value.cornerDist /
+              (boxDims.value.width + boxDims.value.height)) *
+              100,
+      ),
+    );
 
-    allSides.forEach((sideString, i) => {
-      if (activeSides.value.includes(sideString)) {
-        let ratio;
-
-        if (isScrollOverride) {
-          ratio = props.scrollRatio;
-        } else {
-          if (i % 2 !== 0) {
-            ratio =
-              (boxDims.value.cornerDist /
-                (boxDims.value.width + boxDims.value.height)) *
-              100;
-          } else {
-            ratio =
-              (boxDims.value.cornerDist /
-                (boxDims.value.height + boxDims.value.width)) *
-              100;
-          }
-        }
-
-        ratio = Math.max(0, Math.min(100, ratio));
-        const oppositeIndex = (i + 2) % 4;
-        insetValues[oppositeIndex] = ratio;
-      }
-    });
-
-    let insetString = `inset(${insetValues[0]}% ${insetValues[1]}% ${insetValues[2]}% ${insetValues[3]}%)`;
-
-    gsap.to(bevelBox.value.$el, {
-      clipPath: insetString,
-      duration:
-        motionPaused.value || isInstant === true
-          ? 0
-          : isScrollOverride
-            ? 0.5
-            : 2,
-      ease: "power2.out",
-      overwrite: "auto",
-    });
+    setClipRatio(ratio, isInstant);
   }
-  ticking = false;
 };
-
-if (mousePos) {
-  watch([() => mousePos.x.value, () => mousePos.y.value], () => {
-    if (
-      !ticking &&
-      bevelBox.value?.isVisible &&
-      typeof props.scrollRatio !== "number"
-    ) {
-      window.requestAnimationFrame(() => updateDistance(false));
-      ticking = true;
-    }
-  });
-}
 
 watch(
   () => props.scrollRatio,
   () => {
-    if (!ticking && bevelBox.value?.isVisible) {
-      window.requestAnimationFrame(() => updateDistance(false));
-      ticking = true;
-    }
+    if (bevelBox.value?.isVisible) updateDistance(false);
   },
 );
 
@@ -135,7 +118,7 @@ watch(
   () => bevelBox.value?.isVisible,
   (newVisible) => {
     if (newVisible) {
-      window.requestAnimationFrame(() => updateDistance(true));
+      updateDistance(true);
     }
   },
 );
@@ -143,18 +126,21 @@ watch(
 watch(motionPaused, (isPaused) => {
   if (!isPaused || !bevelBox.value?.$el) return;
 
-  gsap.killTweensOf(bevelBox.value.$el);
   updateDistance(true);
 });
 
-onMounted(async () => {
-  window.addEventListener("resize", updateDimensions);
-  await nextTick();
+onMounted(() => {
+  stopPointerSubscription = subscribeBevelPointer(mousePos, () => {
+    if (bevelBox.value?.isVisible && typeof props.scrollRatio !== "number") {
+      updateDistance(false);
+    }
+  });
   updateDimensions();
 });
 
 onUnmounted(() => {
-  window.removeEventListener("resize", updateDimensions);
+  stopPointerSubscription();
+  clipQuickTo?.tween.kill();
 });
 </script>
 

@@ -1,6 +1,10 @@
 <script setup>
 import CursorBevelBox from "./CursorBevelBox.vue";
 import { ref, onMounted, onUnmounted } from "vue";
+import {
+  subscribeBevelResize,
+  subscribeBevelScroll,
+} from "../../utils/bevelFrameScheduler.js";
 
 const props = defineProps({
   as: {
@@ -26,13 +30,31 @@ const scrollRatio = ref(0);
 const isMobile = ref(false);
 const isReady = ref(false);
 
-let ticking = false;
 let isTrackingScroll = false;
+let isInViewport = false;
 let mobileMediaQuery;
+let visibilityObserver;
+let stopScrollSubscription = () => {};
+let stopResizeSubscription = () => {};
+
+const startVisibilityTracking = () => {
+  if (visibilityObserver || !scrollContainer.value) return;
+
+  visibilityObserver = new IntersectionObserver(([entry]) => {
+    isInViewport = entry.isIntersecting;
+    if (isInViewport) updateRatio();
+  });
+  visibilityObserver.observe(scrollContainer.value);
+};
+
+const stopVisibilityTracking = () => {
+  visibilityObserver?.disconnect();
+  visibilityObserver = null;
+  isInViewport = false;
+};
 
 const updateRatio = () => {
   if (!scrollContainer.value) {
-    ticking = false;
     return;
   }
 
@@ -43,30 +65,27 @@ const updateRatio = () => {
   const distance = Math.abs(viewportCenter - containerCenter);
 
   scrollRatio.value = (distance / windowHeight) * 1.5 * 100;
-  ticking = false;
 };
 
 const onScroll = () => {
-  if (!ticking) {
-    window.requestAnimationFrame(updateRatio);
-    ticking = true;
-  }
+  if (isInViewport) updateRatio();
 };
 
 const startScrollTracking = () => {
   if (isTrackingScroll) return;
-  window.addEventListener("scroll", onScroll, { passive: true });
-  window.addEventListener("resize", onScroll, { passive: true });
+  stopScrollSubscription = subscribeBevelScroll(onScroll);
+  stopResizeSubscription = subscribeBevelResize(onScroll);
   isTrackingScroll = true;
   updateRatio();
 };
 
 const stopScrollTracking = () => {
   if (!isTrackingScroll) return;
-  window.removeEventListener("scroll", onScroll);
-  window.removeEventListener("resize", onScroll);
+  stopScrollSubscription();
+  stopResizeSubscription();
+  stopScrollSubscription = () => {};
+  stopResizeSubscription = () => {};
   isTrackingScroll = false;
-  ticking = false;
 };
 
 const handleViewportChange = (e) => {
@@ -74,7 +93,9 @@ const handleViewportChange = (e) => {
 
   if (e.matches) {
     stopScrollTracking();
+    stopVisibilityTracking();
   } else {
+    startVisibilityTracking();
     startScrollTracking();
   }
 };
@@ -94,6 +115,7 @@ onMounted(() => {
 
 onUnmounted(() => {
   stopScrollTracking();
+  stopVisibilityTracking();
   if (mobileMediaQuery?.removeEventListener) {
     mobileMediaQuery.removeEventListener("change", handleViewportChange);
   } else if (mobileMediaQuery?.removeListener) {

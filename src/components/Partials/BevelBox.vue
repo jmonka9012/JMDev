@@ -3,8 +3,12 @@ import { computed, inject, onMounted, onUnmounted, ref, watch } from "vue";
 import { useVisibility } from "../../utils/useVisibility.js";
 import { gsap } from "gsap";
 import { motionPaused } from "../../utils/motionPreference.js";
+import {
+  subscribeBevelPointer,
+  subscribeBevelResize,
+  subscribeBevelScroll,
+} from "../../utils/bevelFrameScheduler.js";
 
-const lenis = inject("lenis");
 const mousePos = inject("mousePos");
 const isTouch = inject("isTouch");
 
@@ -116,6 +120,10 @@ const activeSidesSrc = computed(() => props.activeSides.split(" "));
 let dists = {};
 let iBox = {};
 let rect;
+let resizeObserver;
+let stopPointerSubscription = () => {};
+let stopScrollSubscription = () => {};
+let stopResizeSubscription = () => {};
 
 const maxDistance = (a, b) => {
   if (props.maxDistance !== -1) return props.maxDistance;
@@ -282,12 +290,16 @@ const updateBorder = (layer, side, bordersConfig, maxDist, distance) => {
   });
 };
 
-let ticking = false;
 let init = false;
 
-const update = () => {
-  handleBorders();
-  ticking = false;
+const refreshGeometry = () => {
+  if (!innerBox.value) return;
+  iBox = {
+    offsetWidth: innerBox.value.offsetWidth,
+    offsetHeight: innerBox.value.offsetHeight,
+  };
+  rect = innerBox.value.getBoundingClientRect();
+  if (props.cbbChild) emit("emitRect", rect);
 };
 
 watch(motionPaused, (isPaused) => {
@@ -296,52 +308,54 @@ watch(motionPaused, (isPaused) => {
   LAYERS.forEach((layer) => {
     if (box[layer].value) gsap.killTweensOf(box[layer].value);
   });
-  update();
+  handleBorders();
 });
 
-const onMouseMove = () => {
-  if (!ticking) {
-    window.requestAnimationFrame(update);
-    ticking = true;
-  }
-};
+watch(isVisible, (newVisible) => {
+  emit("emitVisibility", newVisible);
 
-const onResize = () => {
-  iBox = {
-    offsetWidth: innerBox.value.offsetWidth,
-    offsetHeight: innerBox.value.offsetHeight,
-  };
-};
-const onScroll = () => {
-  if (!innerBox.value) return;
-  rect = innerBox.value.getBoundingClientRect();
-  if (props.cbbChild) emit("emitRect", rect);
-
-  if (!ticking) {
-    window.requestAnimationFrame(update);
-    ticking = true;
+  if (newVisible) {
+    refreshGeometry();
+    handleBorders();
+  } else {
+    LAYERS.forEach((layer) => {
+      if (box[layer].value) gsap.killTweensOf(box[layer].value);
+    });
   }
-};
+});
 
 onMounted(() => {
-  iBox = {
-    offsetWidth: innerBox.value.offsetWidth,
-    offsetHeight: innerBox.value.offsetHeight,
-  };
-  rect = innerBox.value.getBoundingClientRect();
-  if (props.cbbChild) emit("emitRect", rect);
+  refreshGeometry();
+  handleBorders();
 
-  window.addEventListener("mousemove", onMouseMove);
-  window.addEventListener("resize", onResize);
+  stopPointerSubscription = subscribeBevelPointer(mousePos, () => {
+    if (isVisible.value) handleBorders();
+  });
+  stopScrollSubscription = subscribeBevelScroll(() => {
+    if (!isVisible.value) return;
+    refreshGeometry();
+    handleBorders();
+  });
+  stopResizeSubscription = subscribeBevelResize(() => {
+    refreshGeometry();
+    if (isVisible.value) handleBorders();
+  });
 
-  onMouseMove();
-  lenis.on("scroll", onScroll);
+  resizeObserver = new ResizeObserver(() => {
+    refreshGeometry();
+    if (isVisible.value) handleBorders();
+  });
+  resizeObserver.observe(innerBox.value);
 });
 
 onUnmounted(() => {
-  window.removeEventListener("mousemove", onMouseMove);
-  window.removeEventListener("resize", onResize);
-  lenis.off("scroll", onScroll);
+  stopPointerSubscription();
+  stopScrollSubscription();
+  stopResizeSubscription();
+  resizeObserver?.disconnect();
+  LAYERS.forEach((layer) => {
+    if (box[layer].value) gsap.killTweensOf(box[layer].value);
+  });
 });
 </script>
 
