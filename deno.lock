@@ -23,6 +23,7 @@
         "npm:p5@^2.2.3",
         "npm:prettier@^3.5.3",
         "npm:sass@^1.99.0",
+        "npm:sharp@~0.34.5",
         "npm:swiper@^14.1.0",
         "npm:tailwindcss@^4.2.4",
         "npm:vite-ssg-sitemap@0.10",
