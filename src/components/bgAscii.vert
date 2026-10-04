@@ -1,4 +1,5 @@
-precision mediump float;
+// Keep position math and interpolated UV precision consistent with the fragment shader.
+precision highp float;
 attribute vec3 aPosition;
 attribute vec2 aTexCoord;
 

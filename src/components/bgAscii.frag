@@ -1,4 +1,5 @@
-precision mediump float;
+// Document-wide UVs and glyph atlas sampling need subpixel precision on mobile GPUs.
+precision highp float;
 
 varying vec2 vTexCoord; // pixel [x,y]
 
