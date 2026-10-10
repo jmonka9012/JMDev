@@ -9,12 +9,7 @@ const projectRoot = path.resolve(scriptsDir, "..");
 const publicDir = path.join(projectRoot, "public");
 const publicFilesDir = path.join(publicDir, "files");
 const outputDir = path.join(publicFilesDir, "optimized");
-const manifestPath = path.join(
-  projectRoot,
-  "src",
-  "data",
-  "project-images.json",
-);
+const manifestPath = path.join(publicDir, "data", "project-images.json");
 
 const projectDataFiles = [
   path.join(publicDir, "data", "post", "all.json"),

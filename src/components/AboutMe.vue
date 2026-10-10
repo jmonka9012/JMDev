@@ -6,7 +6,6 @@ import BevelBox from "./Partials/BevelBox.vue";
 import { useElementsRegistry } from "../utils/useRegistry.js";
 const { registerElement, unregisterElement } = useElementsRegistry();
 import { computed, onMounted, onUnmounted } from "vue";
-import imageManifest from "../data/project-images.json";
 
 const myId = "about-me";
 
@@ -18,6 +17,10 @@ const props = defineProps({
   lang: {
     type: String,
     required: false,
+  },
+  imageManifest: {
+    type: Object,
+    required: true,
   },
 });
 
@@ -33,7 +36,7 @@ onUnmounted(() => {
 });
 
 const buttonText = props.lang === "pl" ? "Napisz do mnie" : "Contact me";
-const optimizedPhoto = computed(() => imageManifest[props.data.my_photo]);
+const optimizedPhoto = computed(() => props.imageManifest[props.data.my_photo]);
 const photoSizes = "(max-width: 767.98px) 200px, 260px";
 </script>
 

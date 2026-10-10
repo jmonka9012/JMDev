@@ -26,7 +26,6 @@ import "swiper/css/effect-fade";
 
 import ScrambleText from "./Partials/ScrambleText.vue";
 import CustomButton from "./Partials/CustomButton.vue";
-import projectImageManifest from "../data/project-images.json";
 
 const myId = "projects";
 
@@ -41,6 +40,10 @@ const props = defineProps({
   },
   projects: {
     type: Array,
+    required: true,
+  },
+  imageManifest: {
+    type: Object,
     required: true,
   },
 });
@@ -104,7 +107,7 @@ const getProjectPhotos = (post) => {
     .map((key) => post.acf?.[key])
     .filter(Boolean)
     .map((src) => {
-      const optimized = projectImageManifest[src];
+      const optimized = props.imageManifest[src];
 
       return {
         src,
