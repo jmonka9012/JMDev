@@ -141,6 +141,8 @@ const projects = ref([]);
 const projectsPath = lang === "pl" ? "post/all" : "en/post/all";
 projects.value = await getPageData(projectsPath);
 
+const imageManifest = (await getPageData("project-images")) ?? {};
+
 const fadeInPl = (el) => fadeIn(el, 1.5, 0, 0, 0);
 </script>
 
@@ -153,19 +155,24 @@ const fadeInPl = (el) => fadeIn(el, 1.5, 0, 0, 0);
     </div>
     <main id="main-content" tabindex="-1">
       <Hero :data="data.acf.hero" />
-      <AboutMe v-on-enter="fadeInPl" :data="data.acf.about_me" :lang="lang" />
-      <Technologies
+      <AboutMe
         v-on-enter="fadeInPl"
-        :data="data.acf.technologies"
-        :technologies="technologies"
+        :data="data.acf.about_me"
+        :lang="lang"
+        :image-manifest="imageManifest"
       />
-      <Strengths v-on-enter="fadeInPl" :data="data.acf.other_skills" />
       <Projects
         v-on-enter="fadeInPl"
         class="mb-40"
         :data="data.acf.projects"
         :projects="projects"
         :lang="lang"
+        :image-manifest="imageManifest"
+      />
+      <Technologies
+        v-on-enter="fadeInPl"
+        :data="data.acf.technologies"
+        :technologies="technologies"
       />
       <Experience :data="data.acf.experience" :lang="lang" />
     </main>
