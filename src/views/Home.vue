@@ -2,7 +2,7 @@
 import DivineOrbOptimised from "../components/DivineOrbOptimised.vue";
 import Hero from "../components/Hero.vue";
 import AboutMe from "../components/AboutMe.vue";
-import Projects from "../components/Projects.vue";
+import ProjectsOld from "../components/ProjectsOld.vue";
 import Technologies from "../components/Technologies.vue";
 import Strengths from "../components/Strengths.vue";
 import Experience from "../components/Experience.vue";
@@ -161,7 +161,7 @@ const fadeInPl = (el) => fadeIn(el, 1.5, 0, 0, 0);
         :lang="lang"
         :image-manifest="imageManifest"
       />
-      <Projects
+      <ProjectsOld
         v-on-enter="fadeInPl"
         class="mb-40"
         :data="data.acf.projects"
