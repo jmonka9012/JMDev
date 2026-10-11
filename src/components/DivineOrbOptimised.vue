@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, ref, onUnmounted, inject } from "vue";
 import { motionPaused } from "../utils/motionPreference.js";
+import { createLines } from "../scripts/DivineOrb/lines.js";
 import rawAscii from "./DivineOrb.txt?raw";
 import bgVertShader from "./bgAscii.vert?raw";
 import bgFragShader from "./bgAscii.frag?raw";
@@ -85,30 +86,8 @@ Object.keys(charMap).forEach((key) => {
     longestSubstitute = charArray.length;
 });
 
-let lines = [];
-const lineConfig = {
-  rDecr: 7,
-  gDecr: 2,
-  bDecr: 7,
-  startColor: { r: 255, g: 255, b: 255 },
-  distTolerance: 1800,
-  widthRatioConst: 320,
-};
-const availibleDirections = ["down", "up", "right", "left"];
-
-let uniqueLineColors = [];
-
-let r = lineConfig.startColor.r;
-let g = lineConfig.startColor.g;
-let b = lineConfig.startColor.b;
-
-while (r > 0 || g > 0 || b > 0) {
-  const rgbString = `${r},${g},${b}`;
-  uniqueLineColors.push(rgbString);
-  r -= lineConfig.rDecr;
-  g -= lineConfig.gDecr;
-  b -= lineConfig.bDecr;
-}
+const lineEffect = createLines();
+const uniqueLineColors = lineEffect.colors;
 
 const uniqueImageColors = [
   ...new Set(
@@ -184,8 +163,6 @@ const sketch = (p) => {
   let textureDirty = false;
   let isGridReady = false;
   const colorIndexMap = new Map();
-  let linesPerSecond = p.ceil(p.width / lineConfig.widthRatioConst);
-  let framesForLine = p.ceil(60 / linesPerSecond);
 
   ////////////////////////////////
   //////           INIT
@@ -209,9 +186,6 @@ const sketch = (p) => {
   };
 
   const initGridAndTexture = () => {
-    linesPerSecond = p.ceil(p.width / lineConfig.widthRatioConst);
-    framesForLine = p.ceil((1 / linesPerSecond) * 60);
-
     bgCols = Math.ceil(p.width / pastedCharW);
     // One extra row prevents a rounding gap at the bottom of the document.
     bgRows = Math.ceil(getDocumentHeight() / pastedCharH) + 1;
@@ -379,7 +353,7 @@ const sketch = (p) => {
       p.endShape();
     });
 
-    lines = [];
+    lineEffect.reset();
   };
 
   const refreshGridAndTexture = () => {
@@ -479,105 +453,18 @@ const sketch = (p) => {
   //////           DRAW
   ////////////////////////////////
 
-  let survivingLines = [];
-
   p.draw = () => {
-    // line ratio
-    // if (p.frameCount % 8 === 0) lines.push(generateLine(2, "down"));
-    if (!motionPaused.value && p.frameCount % framesForLine === 0) {
-      lines.push(generateLine(2, "down"));
-    }
-
-    // Refresh falling lines state
-    survivingLines = [];
-
-    for (let i = 0; i < lines.length; i++) {
-      const l = lines[i];
-
-      if (isLineKillable(l)) {
-        const totalLen = MAX_LINE_LENGTH + l.speed;
-        for (let s = 0; s <= totalLen; s++) {
-          const col = l.col + s * l.dirX * -1;
-          const row = l.row + s * l.dirY * -1;
-          if (isWithinGrid(col, row)) {
-            const index = (row * bgCols + col) * 4;
-            if (
-              bgDataTexture.pixels[index + 2] !== 255 &&
-              bgDataTexture.pixels[index + 2] !== 150 &&
-              bgDataTexture.pixels[index + 2] !== 140 &&
-              bgDataTexture.pixels[index + 3] !== 0
-            ) {
-              // Blue = 140 - line
-              bgDataTexture.pixels[index + 3] = 0;
-              textureDirty = true;
-            }
-          }
-        }
-      } else {
-        survivingLines.push(l);
-      }
-    }
-
-    lines = survivingLines;
-
-    for (let i = 0; i < lines.length; i++) {
-      const l = lines[i];
-
-      let r = lineConfig.startColor.r;
-      let g = lineConfig.startColor.g;
-      let b = lineConfig.startColor.b;
-
-      let letter = 0;
-
-      while (r > 0 || g > 0 || b > 0) {
-        let col = l.col + letter * l.dirX * -1;
-        let row = l.row + letter * l.dirY * -1;
-
-        if (isWithinGrid(col, row)) {
-          const index = (row * bgCols + col) * 4;
-
-          if (
-            bgDataTexture.pixels[index + 2] !== 255 &&
-            bgDataTexture.pixels[index + 2] !== 150
-          ) {
-            const colorString = uniqueLineColors[letter];
-            const colorIndex = colorIndexMap.get(colorString);
-
-            bgDataTexture.pixels[index + 0] = 255;
-            bgDataTexture.pixels[index + 1] = colorIndex;
-            bgDataTexture.pixels[index + 2] = 120;
-            bgDataTexture.pixels[index + 3] = 255;
-            textureDirty = true;
-          }
-        }
-
-        letter++;
-        r -= lineConfig.rDecr;
-        g -= lineConfig.gDecr;
-        b -= lineConfig.bDecr;
-      }
-
-      for (let s = 0; s <= l.speed; s++) {
-        let clearCol = l.col + (letter + s) * l.dirX * -1;
-        let clearRow = l.row + (letter + s) * l.dirY * -1;
-
-        if (isWithinGrid(clearCol, clearRow)) {
-          const index = (clearRow * bgCols + clearCol) * 4;
-          if (
-            bgDataTexture.pixels[index + 2] !== 255 &&
-            bgDataTexture.pixels[index + 2] !== 150 &&
-            bgDataTexture.pixels[index + 3] !== 0
-          ) {
-            bgDataTexture.pixels[index + 3] = 0;
-            textureDirty = true;
-          }
-        }
-      }
-
-      l.frame++;
-      l.row += l.speed * l.dirY;
-      l.col += l.speed * l.dirX;
-    }
+    const linesChanged = lineEffect.update({
+      p,
+      motionPaused: motionPaused.value,
+      bgDataTexture,
+      colorIndexMap,
+      bgCols,
+      bgRows,
+      pageDelta,
+      pastedCharH,
+    });
+    textureDirty = textureDirty || linesChanged;
 
     if (textureDirty) {
       bgDataTexture.updatePixels();
@@ -646,85 +533,6 @@ const sketch = (p) => {
     // p.translate(-p.width / 2, -p.height / 2, 1);
     // p.image(atlas, 0, 0);
     // p.pop();
-  };
-
-  const generateLine = (
-    speed,
-    direction = p.random(availibleDirections),
-    startCol,
-    startRow,
-  ) => {
-    let line = {};
-    let col,
-      row,
-      dirX = 0,
-      dirY = 0;
-
-    const currentTopRow = Math.floor(Math.abs(pageDelta) / pastedCharH);
-    const rowsOnScreen = Math.ceil(p.height / pastedCharH);
-    const currentBottomRow = currentTopRow + rowsOnScreen;
-
-    switch (direction) {
-      case "up":
-        col = p.floor(p.random(0, bgCols));
-        row = currentBottomRow;
-        dirY = -1;
-        break;
-      case "left":
-        col = bgCols;
-        row = p.floor(p.random(currentTopRow, currentBottomRow));
-        dirX = -1;
-        break;
-      case "right":
-        col = -1;
-        row = p.floor(p.random(currentTopRow, currentBottomRow));
-        dirX = 1;
-        break;
-      default:
-        col = p.floor(p.random(0, bgCols));
-        row = currentTopRow - 1;
-        dirY = 1;
-    }
-
-    col = startCol ?? col;
-    row = startRow ?? row;
-
-    line = {
-      col: col,
-      row: row,
-      frame: 0,
-      dirX: dirX,
-      dirY: dirY,
-      speed: speed,
-    };
-
-    return line;
-  };
-
-  const getLineLength = () => {
-    const lenR = lineConfig.startColor.r / lineConfig.rDecr;
-    const lenG = lineConfig.startColor.g / lineConfig.gDecr;
-    const lenB = lineConfig.startColor.b / lineConfig.bDecr;
-    return Math.floor(Math.max(lenR, lenG, lenB));
-  };
-  const MAX_LINE_LENGTH = getLineLength();
-
-  const isLineKillable = (line) => {
-    const tailCol = line.col - line.dirX * MAX_LINE_LENGTH;
-    const tailRow = line.row - line.dirY * MAX_LINE_LENGTH;
-
-    const currentTopRow = Math.floor(Math.abs(pageDelta) / pastedCharH);
-    const rowsOnScreen = Math.ceil(p.height / pastedCharH);
-    const currentBottomRow = currentTopRow + rowsOnScreen;
-
-    const margin = 10;
-
-    if (line.dirX === -1 && tailCol < 0) return true;
-    if (line.dirX === 1 && tailCol > bgCols) return true;
-    if (line.dirY === -1 && tailRow < currentTopRow - margin) return true;
-    if (line.dirY === 1 && tailRow > currentBottomRow + margin) return true;
-
-    return false;
   };
 
   const isWithinGrid = (col, row) => {
