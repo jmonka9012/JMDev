@@ -113,7 +113,6 @@ const estimHeight = charImageHeight * pastedCharH;
 const estimWidth = charImageWidth * pastedCharW;
 
 let gridPixelWidth, gridPixelHeight;
-const trackedElements = ref([]);
 
 let hasMoved = false;
 
@@ -121,34 +120,6 @@ const onFirstInteraction = () => {
   hasMoved = true;
   window.removeEventListener("mousemove", onFirstInteraction);
   window.removeEventListener("touchstart", onFirstInteraction);
-};
-
-const updateTrackedElements = () => {
-  const trackedBoxes = document.querySelectorAll("[data-ascii-tracked]");
-
-  trackedElements.value = Array.from(trackedBoxes).map((el) => {
-    const rect = el.getBoundingClientRect();
-    const scrollX = window.scrollX || document.documentElement.scrollLeft;
-    const scrollY = window.scrollY || document.documentElement.scrollTop;
-
-    const borderWidthX = parseInt(el.dataset.asciiBorderWidthX, 10) || 1;
-    const borderWidthY = parseInt(el.dataset.asciiBorderWidthY, 10) || 1;
-    const placement = el.dataset.asciiBorderPlacement || "inside";
-    return {
-      el: el,
-      ascii: el.dataset.asciiTracked, // Stores "border-box" or "filled-box"
-      borderWidthX: borderWidthX,
-      borderWidthY: borderWidthY,
-      placement: placement,
-      vertices: {
-        topLeft: { x: rect.left + scrollX, y: rect.top + scrollY },
-        topRight: { x: rect.right + scrollX, y: rect.top + scrollY },
-        bottomRight: { x: rect.right + scrollX, y: rect.bottom + scrollY },
-        bottomLeft: { x: rect.left + scrollX, y: rect.bottom + scrollY },
-      },
-      size: { width: rect.width, height: rect.height },
-    };
-  });
 };
 
 let bgCols, bgRows;
@@ -252,90 +223,6 @@ const sketch = (p) => {
       }
     }
 
-    // Borders and fills
-    if (trackedElements && trackedElements.value) {
-      trackedElements.value.forEach((box) => {
-        const startCol = Math.floor(box.vertices.topLeft.x / pastedCharW);
-        const endCol = Math.floor(box.vertices.bottomRight.x / pastedCharW);
-        const startRow = Math.floor(box.vertices.topLeft.y / pastedCharH);
-        const endRow = Math.floor(box.vertices.bottomRight.y / pastedCharH);
-
-        const charIndex = uniqueChars.indexOf("+");
-        if (charIndex === -1) return;
-
-        const wx = box.borderWidthX;
-        const wy = box.borderWidthY;
-        const placement = box.placement;
-
-        let outerStartCol, outerEndCol, outerStartRow, outerEndRow;
-        let innerStartCol, innerEndCol, innerStartRow, innerEndRow;
-
-        if (placement === "outside") {
-          outerStartCol = startCol - wx;
-          outerEndCol = endCol + wx;
-          outerStartRow = startRow - wy;
-          outerEndRow = endRow + wy;
-
-          innerStartCol = startCol;
-          innerEndCol = endCol;
-          innerStartRow = startRow;
-          innerEndRow = endRow;
-        } else {
-          outerStartCol = startCol;
-          outerEndCol = endCol;
-          outerStartRow = startRow;
-          outerEndRow = endRow;
-
-          innerStartCol = startCol + wx;
-          innerEndCol = endCol - wx;
-          innerStartRow = startRow + wy;
-          innerEndRow = endRow - wy;
-        }
-
-        // DECOUPLING
-        const BORDER_BOX_BLUE = 150;
-        const FILLED_BOX_BLUE = 160;
-        const BUTTON_BOX_BLUE = 170;
-
-        const drawPixel = (col, row, blueChannelValue) => {
-          if (isWithinGrid(col, row)) {
-            const index = (row * bgCols + col) * 4;
-            bgDataTexture.pixels[index + 0] = 0;
-            bgDataTexture.pixels[index + 1] = 33;
-            bgDataTexture.pixels[index + 2] = blueChannelValue;
-            bgDataTexture.pixels[index + 3] = 255;
-          }
-        };
-
-        if (box.ascii === "filled-box") {
-          for (let r = outerStartRow; r <= outerEndRow; r++) {
-            for (let c = outerStartCol; c <= outerEndCol; c++) {
-              drawPixel(c, r, FILLED_BOX_BLUE);
-            }
-          }
-        } else if (box.ascii === "border-box") {
-          for (let r = outerStartRow; r <= outerEndRow; r++) {
-            for (let c = outerStartCol; c <= outerEndCol; c++) {
-              if (
-                r >= innerStartRow &&
-                r <= innerEndRow &&
-                c >= innerStartCol &&
-                c <= innerEndCol
-              ) {
-                continue;
-              }
-              drawPixel(c, r, BORDER_BOX_BLUE);
-            }
-          }
-        } else {
-          for (let r = outerStartRow; r <= outerEndRow; r++) {
-            for (let c = outerStartCol; c <= outerEndCol; c++) {
-              drawPixel(c, r, BUTTON_BOX_BLUE);
-            }
-          }
-        }
-      });
-    }
     bgDataTexture.updatePixels();
     textureDirty = false;
     bgDataTexture.drawingContext.imageSmoothingEnabled = false;
@@ -359,7 +246,6 @@ const sketch = (p) => {
   const refreshGridAndTexture = () => {
     if (!isGridReady) return;
 
-    updateTrackedElements();
     initGridAndTexture();
   };
 
@@ -583,8 +469,6 @@ const handleScroll = (e) => {
 onMounted(async () => {
   if (typeof window !== "undefined") {
     const p5 = (await import("../utils/p5DivineOrb.js")).default;
-
-    updateTrackedElements();
 
     window.addEventListener("mousemove", onFirstInteraction, { passive: true });
     window.addEventListener("touchstart", onFirstInteraction, {
