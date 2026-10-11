@@ -7,13 +7,14 @@
 </template>
 
 <script setup>
-import { computed, ref, shallowRef } from "vue";
+import { computed, ref, shallowRef, watch } from "vue";
 import { useRoute } from "vue-router";
 import { useHead } from "@unhead/vue";
 import { getPageData } from "../utils/getData.js";
 
 // Templates
 import HomeTemplate from "./Home.vue";
+import ProjectTemplate from "./Project.vue";
 // import DefaultTemplate from './Default.vue'
 
 const route = useRoute();
@@ -36,13 +37,15 @@ const errorCopy = computed(() =>
 
 const templateMap = {
   home: HomeTemplate,
+  project: ProjectTemplate,
 };
 
 const loadPage = async () => {
   pageData.value = await getPageData(route.path);
 
   if (pageData.value) {
-    const templateName = pageData.value?.acf?.template || "home";
+    const templateName =
+      route.meta.template || pageData.value?.acf?.template || "home";
     dynamicComponent.value = templateMap[templateName] || HomeTemplate;
   }
 };
@@ -65,4 +68,6 @@ useHead(
 );
 
 await loadPage();
+// Vue Router reuses this resolver when navigating between projects.
+watch(() => route.path, loadPage);
 </script>

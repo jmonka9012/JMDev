@@ -131,6 +131,7 @@ async function run() {
     // === 2. POSTS === (Projects)
     const posts = await fetchAllPages(`${API_URL}/posts?_embed&acf_format=standard`)
     const aggregatedPosts = {}
+    const projectRoutes = new Set(generatedRoutes)
 
     for (const post of posts) {
         if (post._embedded && post._embedded['wp:featuredmedia']) {
@@ -145,12 +146,14 @@ async function run() {
         }
 
         const lang = post.acf?.lang || post.meta?.lang || 'pl'
+        // Remove only the trailing "-2" used by the translated copies.
+        const slug = post.slug.replace(/-2$/, '')
 
         const compactPost = {
             id: post.id,
             title: post.title?.rendered || '',
             acf: post.acf || '',
-            slug: post.slug,
+            slug,
             excerpt: post.excerpt?.rendered || '',
             content: post.content?.rendered || '',
             date: post.date,
@@ -161,11 +164,16 @@ async function run() {
         if (!aggregatedPosts[lang]) aggregatedPosts[lang] = []
         aggregatedPosts[lang].push(compactPost)
 
-        const routePath = lang === 'pl' ? `/post/${post.id}` : `/${lang}/post/${post.id}`
-        const jsonPath = lang === 'pl' ? `post/${post.id}.json` : `${lang}/post/${post.id}.json`
+        const routePath = lang === 'pl' ? `/projekt/${slug}` : `/${lang}/project/${slug}`
+        const jsonPath = lang === 'pl' ? `projekt/${slug}.json` : `${lang}/project/${slug}.json`
 
-        saveNestedJson(jsonPath, post)
-        // generatedRoutes.push(routePath)
+        if (projectRoutes.has(routePath)) {
+            throw new Error(`Repeated project address ${routePath} (post ID: ${post.id}).`)
+        }
+        projectRoutes.add(routePath)
+
+        saveNestedJson(jsonPath, { ...post, slug })
+        generatedRoutes.push(routePath)
     }
 
     for (const [lang, postsArray] of Object.entries(aggregatedPosts)) {

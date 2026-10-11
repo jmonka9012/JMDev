@@ -13,6 +13,16 @@ import { initializeMotionPreference } from "./utils/motionPreference.js";
 const routes = [
   { path: "/", component: PageResolver },
   { path: "/:lang(en|de)", component: PageResolver },
+  {
+    path: "/projekt/:slug",
+    component: PageResolver,
+    meta: { template: "project" },
+  },
+  {
+    path: "/:lang(en|de)/project/:slug",
+    component: PageResolver,
+    meta: { template: "project" },
+  },
   { path: "/:slug", component: PageResolver },
   { path: "/:lang(en|de)/:slug", component: PageResolver },
 ];
