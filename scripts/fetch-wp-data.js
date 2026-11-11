@@ -145,6 +145,10 @@ async function run() {
             post.acf = await processAllImages(post.acf);
         }
 
+        if (post.portfolio) {
+            post.portfolio = await processAllImages(post.portfolio);
+        }
+
         const lang = post.acf?.lang || post.meta?.lang || 'pl'
         // Remove only the trailing "-2" used by the translated copies.
         const slug = post.slug.replace(/-2$/, '')
@@ -153,6 +157,7 @@ async function run() {
             id: post.id,
             title: post.title?.rendered || '',
             acf: post.acf || '',
+            portfolio: post.portfolio,
             slug,
             excerpt: post.excerpt?.rendered || '',
             content: post.content?.rendered || '',

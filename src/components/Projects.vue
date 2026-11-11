@@ -3,6 +3,11 @@ import { computed, onMounted, onUnmounted } from "vue";
 import { useElementsRegistry } from "../utils/useRegistry.js";
 import ScrambleText from "./Partials/ScrambleText.vue";
 import CustomButton from "./Partials/CustomButton.vue";
+import {
+  projectThumbnail,
+  safeProjectUrl,
+  sanitizeProjectHtml,
+} from "../utils/projectContent.js";
 
 const { registerElement, unregisterElement } = useElementsRegistry();
 const myId = "projects";
@@ -19,14 +24,18 @@ const projectImageSizes =
   "(max-width: 767.98px) 100vw, (max-width: 1023.98px) 50vw, (max-width: 1399.98px) 33vw, 420px";
 
 const cards = computed(() =>
-  props.projects.map((post) => ({
-    ...post,
-    thumbnail: post.acf?.photo_1,
-    image: props.imageManifest[post.acf?.photo_1],
-    content: (post.content ?? "")
-      .replace(/<h[1-3](\b[^>]*)>/gi, "<h4$1>")
-      .replace(/<\/h[1-3]>/gi, "</h4>"),
-  })),
+  props.projects.map((post) => {
+    const thumbnail = projectThumbnail(post)?.url;
+    return {
+      ...post,
+      thumbnail,
+      image: props.imageManifest[thumbnail],
+      projectUrl: safeProjectUrl(post.acf?.link),
+      content: sanitizeProjectHtml(post.content)
+        .replace(/<h[1-3](\b[^>]*)>/gi, "<h4$1>")
+        .replace(/<\/h[1-3]>/gi, "</h4>"),
+    };
+  }),
 );
 
 onMounted(() => {
@@ -76,9 +85,9 @@ onUnmounted(() => {
             <h3 class="project-card__title">{{ post.title }}</h3>
             <div class="project-card__content" v-html="post.content"></div>
             <CustomButton
-              v-if="post.acf?.link"
+              v-if="post.projectUrl"
               class="project-card__button"
-              :link="post.acf.link"
+              :link="post.projectUrl"
               :text="buttonText"
               :aria-label="`${buttonText}: ${post.title}`"
             />

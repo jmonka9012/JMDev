@@ -2,6 +2,11 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
+import {
+  projectGallery,
+  projectChallenges,
+  projectThumbnail,
+} from "../src/utils/projectContent.js";
 
 const currentFile = fileURLToPath(import.meta.url);
 const scriptsDir = path.dirname(currentFile);
@@ -43,8 +48,13 @@ const collectImageUrls = (projects) => {
   const urls = new Set();
 
   for (const project of projects) {
-    for (const key of ["photo_1", "photo_2", "photo_3"]) {
-      const imageUrl = project.acf?.[key];
+    const images = [
+      projectThumbnail(project),
+      ...projectGallery(project).map((row) => row.image),
+      ...projectChallenges(project).map((row) => row.screenshot),
+    ];
+    for (const image of images) {
+      const imageUrl = image?.url;
       if (/^\/files\/.+\.(png|jpe?g|webp)$/i.test(imageUrl || "")) {
         urls.add(imageUrl);
       }
