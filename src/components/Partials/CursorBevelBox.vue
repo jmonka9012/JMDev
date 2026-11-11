@@ -36,9 +36,14 @@ const clipState = { ratio: 0 };
 const activeSides = computed(() => props.corner.split(" "));
 
 const handleEmit = (payload) => {
+  const isInitialGeometry = rect === null;
   rect = payload;
   updateDimensions();
-  updateDistance(true); // Pass true to update immediately.
+  // Scroll geometry is refreshed every frame. The scrollRatio watcher owns
+  // its tween; resetting it here would pause/snap it on every scroll event.
+  if (isInitialGeometry || typeof props.scrollRatio !== "number") {
+    updateDistance(true);
+  }
 };
 
 const updateDimensions = () => {

@@ -101,7 +101,7 @@ const handleViewportChange = (e) => {
 };
 
 onMounted(() => {
-  mobileMediaQuery = window.matchMedia("(max-width: 991.98px)");
+  mobileMediaQuery = window.matchMedia("(max-width: 1023.98px)");
   handleViewportChange(mobileMediaQuery);
 
   if (mobileMediaQuery.addEventListener) {
