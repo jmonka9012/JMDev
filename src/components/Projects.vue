@@ -5,7 +5,6 @@ import ScrambleText from "./Partials/ScrambleText.vue";
 import CustomButton from "./Partials/CustomButton.vue";
 import {
   projectThumbnail,
-  safeProjectUrl,
   sanitizeProjectHtml,
 } from "../utils/projectContent.js";
 
@@ -30,7 +29,10 @@ const cards = computed(() =>
       ...post,
       thumbnail,
       image: props.imageManifest[thumbnail],
-      projectUrl: safeProjectUrl(post.acf?.link),
+      projectUrl:
+        (props.lang || post.acf?.lang || "pl") === "pl"
+          ? `/projekt/${post.slug}`
+          : `/${props.lang || post.acf?.lang}/project/${post.slug}`,
       content: sanitizeProjectHtml(post.content)
         .replace(/<h[1-3](\b[^>]*)>/gi, "<h4$1>")
         .replace(/<\/h[1-3]>/gi, "</h4>"),
@@ -88,6 +90,7 @@ onUnmounted(() => {
               v-if="post.projectUrl"
               class="project-card__button"
               :link="post.projectUrl"
+              target="_self"
               :text="buttonText"
               :aria-label="`${buttonText}: ${post.title}`"
             />

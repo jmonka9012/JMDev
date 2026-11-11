@@ -9,6 +9,7 @@ import "swiper/css/pagination";
 import ProjectImage from "../components/Partials/ProjectImage.vue";
 import CustomButton from "../components/Partials/CustomButton.vue";
 import MotionToggle from "../components/Partials/MotionToggle.vue";
+import DivineOrbOptimised from "../components/DivineOrbOptimised.vue";
 import { getPageData } from "../utils/getData.js";
 import { motionPaused } from "../utils/motionPreference.js";
 import {
@@ -104,6 +105,9 @@ useHead(
 </script>
 
 <template>
+  <div class="project-background" aria-hidden="true">
+    <DivineOrbOptimised :show-orb="false" />
+  </div>
   <MotionToggle :lang="lang" />
   <main id="main-content" class="project-page container" tabindex="-1">
     <RouterLink class="project-page__back" :to="`${home}#projects`"
@@ -228,7 +232,16 @@ useHead(
 </template>
 
 <style scoped lang="scss">
+.project-background {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+
 .project-page {
+  position: relative;
+  z-index: 1;
   padding-top: 100px;
   padding-bottom: 80px;
   font-size: 20px;

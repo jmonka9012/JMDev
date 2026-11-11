@@ -7,6 +7,10 @@ import rawAscii from "./DivineOrb.txt?raw";
 import bgVertShader from "./bgAscii.vert?raw";
 import bgFragShader from "./bgAscii.frag?raw";
 
+const props = defineProps({
+  showOrb: { type: Boolean, default: true },
+});
+
 const lenis = inject("lenis");
 const isTouch = inject("isTouch");
 const touchPos = inject("touchPos");
@@ -108,14 +112,15 @@ const sketch = (p) => {
       bgDataTexture.pixels[i + 3] = 0;
     }
 
-    orbEffect.burn({
-      p,
-      bgDataTexture,
-      bgCols,
-      bgRows,
-      atlasMap,
-      colorIndexMap,
-    });
+    if (props.showOrb)
+      orbEffect.burn({
+        p,
+        bgDataTexture,
+        bgCols,
+        bgRows,
+        atlasMap,
+        colorIndexMap,
+      });
 
     bgDataTexture.updatePixels();
     textureDirty = false;
