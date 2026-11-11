@@ -33,6 +33,7 @@ const copy = computed(() =>
         challenge: "Wyzwanie",
         solution: "Rozwiązanie",
         effect: "Efekt",
+        material: "Zobacz materiał",
         outcome: "Podsumowanie",
         visit: "Zobacz realizację",
         gallery: "Galeria projektu",
@@ -49,6 +50,7 @@ const copy = computed(() =>
         challenge: "Challenge",
         solution: "Solution",
         effect: "Effect",
+        material: "View resource",
         outcome: "Outcome",
         visit: "View live project",
         gallery: "Project gallery",
@@ -216,6 +218,14 @@ useHead(
             :image="item.screenshot"
             :manifest="manifest"
           />
+          <div v-if="item.link_url" class="project-page__resource">
+            <CustomButton
+              :key="item.link_label"
+              :link="item.link_url"
+              :text="item.link_label || copy.material"
+              rel="noopener noreferrer"
+            />
+          </div>
         </article>
       </section>
 
@@ -326,6 +336,14 @@ useHead(
   }
   &__plain {
     white-space: pre-line;
+  }
+  &__resource {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+  &__resource :deep(.scramble-wrapper) {
+    display: inline-block;
+    max-width: 100%;
   }
   .rich-text {
     overflow-wrap: anywhere;

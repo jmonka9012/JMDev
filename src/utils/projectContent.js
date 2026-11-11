@@ -139,6 +139,11 @@ export const projectChallenges = (post) => {
         : "",
       effect: typeof row.effect === "string" ? row.effect.trim() : "",
       screenshot: projectImage(row.screenshot),
+      link_url: /^https?:\/\//i.test(safeProjectUrl(row.link_url))
+        ? safeProjectUrl(row.link_url)
+        : "",
+      link_label:
+        typeof row.link_label === "string" ? row.link_label.trim() : "",
     }))
     .filter(
       (row) =>
@@ -146,6 +151,7 @@ export const projectChallenges = (post) => {
         row.challenge ||
         row.solution ||
         row.effect ||
-        row.screenshot,
+        row.screenshot ||
+        row.link_url,
     );
 };

@@ -99,3 +99,25 @@ test(
     }
   },
 );
+
+test("challenge materials support screenshot and link together or separately", () => {
+  const rows = projectChallenges({
+    portfolio: {
+      challenges: [
+        {
+          screenshot: { url: "/files/screen.png" },
+          link_url: "https://example.com/demo",
+          link_label: "Demo",
+        },
+        { link_url: "https://example.com/report" },
+        { link_url: "javascript:alert(1)", link_label: "Unsafe" },
+        { link_label: "No URL" },
+      ],
+    },
+  });
+  assert.equal(rows.length, 2);
+  assert.equal(rows[0].screenshot.url, "/files/screen.png");
+  assert.equal(rows[0].link_url, "https://example.com/demo");
+  assert.equal(rows[0].link_label, "Demo");
+  assert.equal(rows[1].screenshot, null);
+});
