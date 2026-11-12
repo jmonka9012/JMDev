@@ -33,7 +33,7 @@ const cards = computed(() =>
         (props.lang || post.acf?.lang || "pl") === "pl"
           ? `/projekt/${post.slug}`
           : `/${props.lang || post.acf?.lang}/project/${post.slug}`,
-      content: sanitizeProjectHtml(post.content)
+      content: sanitizeProjectHtml(post.excerpt || post.content)
         .replace(/<h[1-3](\b[^>]*)>/gi, "<h4$1>")
         .replace(/<\/h[1-3]>/gi, "</h4>"),
     };

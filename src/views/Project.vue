@@ -73,7 +73,10 @@ const technologies = computed(() => {
       Number(item?.ID ?? item?.id ?? item),
     ),
   );
-  return technologyEntries.filter((item) => ids.has(Number(item.id)));
+  const byId = new Map(
+    technologyEntries.map((item) => [Number(item.id), item]),
+  );
+  return [...ids].map((id) => byId.get(id)).filter(Boolean);
 });
 const title = computed(() =>
   sanitizeProjectHtml(props.data.title?.rendered ?? props.data.title ?? ""),
@@ -97,12 +100,58 @@ const outcome = computed(() =>
     ""
   ).trim(),
 );
-const liveUrl = computed(() => safeProjectUrl(props.data.acf?.link));
+const liveUrl = computed(() =>
+  safeProjectUrl(
+    props.data.portfolio?.project_url ||
+      props.data.acf?.link?.url ||
+      props.data.acf?.link,
+  ),
+);
+const translationPaths = computed(
+  () => props.data.portfolio?.translations || {},
+);
+const siteUrl = (import.meta.env.VITE_SITE_URL || "https://jmdev.pl").replace(
+  /\/$/,
+  "",
+);
 useHead(
-  computed(() => ({
-    title: `${props.data.title?.rendered?.replace(/<[^>]*>/g, "") || "Project"} | Jacek Mońka`,
-    htmlAttrs: { lang: lang.value },
-  })),
+  computed(() => {
+    const seo = props.data.portfolio?.seo || {};
+    const path = translationPaths.value[lang.value];
+    const canonical = path ? `${siteUrl}${path}` : null;
+    const titleText =
+      seo.title ||
+      `${props.data.title?.rendered?.replace(/<[^>]*>/g, "") || "Project"} | Jacek Mońka`;
+    const description = seo.meta_description || "";
+    return {
+      title: titleText,
+      htmlAttrs: { lang: lang.value },
+      meta: [
+        { name: "description", content: description },
+        { name: "keywords", content: (seo.keywords || []).join(", ") },
+        { property: "og:title", content: titleText },
+        { property: "og:description", content: description },
+        ...(canonical ? [{ property: "og:url", content: canonical }] : []),
+      ],
+      link: [
+        ...(canonical ? [{ rel: "canonical", href: canonical }] : []),
+        ...Object.entries(translationPaths.value).map(([locale, route]) => ({
+          rel: "alternate",
+          hreflang: locale,
+          href: `${siteUrl}${route}`,
+        })),
+        ...(translationPaths.value.pl
+          ? [
+              {
+                rel: "alternate",
+                hreflang: "x-default",
+                href: `${siteUrl}${translationPaths.value.pl}`,
+              },
+            ]
+          : []),
+      ],
+    };
+  }),
 );
 </script>
 
@@ -115,6 +164,17 @@ useHead(
     <RouterLink class="project-page__back" :to="`${home}#projects`"
       >← {{ copy.back }}</RouterLink
     >
+    <nav v-if="Object.keys(translationPaths).length > 1" aria-label="Language">
+      <template v-for="(path, locale) in translationPaths" :key="locale">
+        <RouterLink
+          v-if="locale !== lang"
+          :to="path"
+          :hreflang="locale"
+          :lang="locale"
+          >{{ locale.toUpperCase() }}</RouterLink
+        >
+      </template>
+    </nav>
     <article>
       <header class="project-page__hero">
         <h1 v-html="title"></h1>

@@ -144,3 +144,13 @@ test("screenshot collections preserve order, omit invalid images and allow clear
   );
   assert.equal(rows[0].screenshots[0].caption, "B");
 });
+
+test("managed empty Hero remains empty instead of restoring historical photos", () => {
+  assert.deepEqual(
+    projectGallery({
+      portfolio: { schema_version: 2, gallery: [] },
+      acf: { photo_1: "/files/old.png" },
+    }),
+    [],
+  );
+});

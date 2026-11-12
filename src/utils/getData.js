@@ -2,7 +2,7 @@ export const getJsonUrl = (routePath) => {
   const cleanPath = routePath.replace(/^\/|\/$/g, "");
 
   if (cleanPath === "") return "/data/index.json";
-  if (["en", "de"].includes(cleanPath)) return `/data/${cleanPath}/index.json`;
+  if (/^[a-z]{2}$/.test(cleanPath)) return `/data/${cleanPath}/index.json`;
 
   // For a post (for example, /en/post/123), automatically return /data/en/post/123.json.
   return `/data/${cleanPath}.json`;

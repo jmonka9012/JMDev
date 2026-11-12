@@ -16,10 +16,6 @@ const publicFilesDir = path.join(publicDir, "files");
 const outputDir = path.join(publicFilesDir, "optimized");
 const manifestPath = path.join(publicDir, "data", "project-images.json");
 
-const projectDataFiles = [
-  path.join(publicDir, "data", "post", "all.json"),
-  path.join(publicDir, "data", "en", "post", "all.json"),
-];
 
 const targetWidths = [720, 1200, 1600];
 const additionalImages = [
@@ -31,6 +27,13 @@ const additionalImages = [
 
 const readProjects = async () => {
   const projects = [];
+  let locales = ["pl", "en"];
+  try {
+    locales = Object.keys(JSON.parse(await fs.readFile(path.join(publicDir, "data", "languages.json"), "utf8")));
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+  }
+  const projectDataFiles = locales.map((locale) => path.join(publicDir, "data", ...(locale === "pl" ? [] : [locale]), "post", "all.json"));
 
   for (const dataFile of projectDataFiles) {
     try {

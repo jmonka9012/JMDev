@@ -115,7 +115,7 @@ export const projectGallery = (post) => {
       caption: row.caption || "",
     }))
     .filter((row) => row.image);
-  if (gallery.length) return gallery;
+  if (gallery.length || post.portfolio?.schema_version >= 2) return gallery;
   return ["photo_1", "photo_2", "photo_3"]
     .map((key) => ({ image: projectImage(post.acf?.[key]), caption: "" }))
     .filter((row) => row.image);
