@@ -138,7 +138,17 @@ export const projectChallenges = (post) => {
         ? sanitizeProjectHtml(row.solution)
         : "",
       effect: typeof row.effect === "string" ? row.effect.trim() : "",
-      screenshot: projectImage(row.screenshot),
+      screenshots: (Array.isArray(row.screenshots)
+        ? row.screenshots
+        : row.screenshot
+          ? [{ image: row.screenshot }]
+          : []
+      )
+        .map((shot) => ({
+          image: projectImage(shot.image),
+          caption: shot.caption || "",
+        }))
+        .filter((shot) => shot.image),
       link_url: /^https?:\/\//i.test(safeProjectUrl(row.link_url))
         ? safeProjectUrl(row.link_url)
         : "",
@@ -151,7 +161,7 @@ export const projectChallenges = (post) => {
         row.challenge ||
         row.solution ||
         row.effect ||
-        row.screenshot ||
+        row.screenshots.length ||
         row.link_url,
     );
 };

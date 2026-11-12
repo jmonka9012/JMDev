@@ -213,11 +213,46 @@ useHead(
             <h4>{{ copy.effect }}</h4>
             <p class="project-page__plain">{{ item.effect }}</p>
           </div>
-          <ProjectImage
-            v-if="item.screenshot"
-            :image="item.screenshot"
-            :manifest="manifest"
-          />
+          <div v-if="item.screenshots.length" class="project-page__gallery">
+            <figure v-if="item.screenshots.length === 1">
+              <ProjectImage
+                :image="item.screenshots[0].image"
+                :manifest="manifest"
+              />
+              <figcaption v-if="item.screenshots[0].caption">
+                {{ item.screenshots[0].caption }}
+              </figcaption>
+            </figure>
+            <Swiper
+              v-else
+              :modules="[A11y, Navigation, Pagination, Keyboard]"
+              navigation
+              :pagination="{ clickable: true }"
+              :keyboard="{ enabled: true, onlyInViewport: true }"
+              :a11y="{
+                containerMessage: copy.gallery,
+                prevSlideMessage: copy.previous,
+                nextSlideMessage: copy.next,
+                slideLabelMessage: copy.slide,
+                paginationBulletMessage: copy.pagination,
+              }"
+              :speed="motionPaused ? 0 : 350"
+              :space-between="24"
+              :auto-height="true"
+            >
+              <SwiperSlide
+                v-for="(shot, shotIndex) in item.screenshots"
+                :key="`${shotIndex}-${shot.image.url}`"
+              >
+                <figure>
+                  <ProjectImage :image="shot.image" :manifest="manifest" />
+                  <figcaption v-if="shot.caption">
+                    {{ shot.caption }}
+                  </figcaption>
+                </figure>
+              </SwiperSlide>
+            </Swiper>
+          </div>
           <div v-if="item.link_url" class="project-page__resource">
             <CustomButton
               :key="item.link_label"

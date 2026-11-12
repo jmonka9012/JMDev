@@ -66,7 +66,7 @@ test("empty optional content disappears and screenshot-only challenges survive",
     },
   });
   assert.equal(rows.length, 2);
-  assert.equal(rows[0].screenshot.url, "/files/a.png");
+  assert.equal(rows[0].screenshots[0].image.url, "/files/a.png");
   assert.equal(rows[1].effect, "Done");
 });
 
@@ -116,8 +116,31 @@ test("challenge materials support screenshot and link together or separately", (
     },
   });
   assert.equal(rows.length, 2);
-  assert.equal(rows[0].screenshot.url, "/files/screen.png");
+  assert.equal(rows[0].screenshots[0].image.url, "/files/screen.png");
   assert.equal(rows[0].link_url, "https://example.com/demo");
   assert.equal(rows[0].link_label, "Demo");
-  assert.equal(rows[1].screenshot, null);
+  assert.deepEqual(rows[1].screenshots, []);
+});
+
+test("screenshot collections preserve order, omit invalid images and allow clearing legacy", () => {
+  const rows = projectChallenges({
+    acf: {
+      project_challenges: [
+        {
+          screenshots: [
+            { image: { url: "/files/b.png" }, caption: "B" },
+            { image: { url: "javascript:bad" } },
+            { image: "/files/a.png" },
+          ],
+        },
+        { screenshot: "/files/legacy.png", screenshots: [] },
+      ],
+    },
+  });
+  assert.equal(rows.length, 1);
+  assert.deepEqual(
+    rows[0].screenshots.map((shot) => shot.image.url),
+    ["/files/b.png", "/files/a.png"],
+  );
+  assert.equal(rows[0].screenshots[0].caption, "B");
 });

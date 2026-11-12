@@ -51,7 +51,9 @@ const collectImageUrls = (projects) => {
     const images = [
       projectThumbnail(project),
       ...projectGallery(project).map((row) => row.image),
-      ...projectChallenges(project).map((row) => row.screenshot),
+      ...projectChallenges(project).flatMap((row) =>
+        row.screenshots.map((shot) => shot.image),
+      ),
     ];
     for (const image of images) {
       const imageUrl = image?.url;
