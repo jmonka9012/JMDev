@@ -19,6 +19,11 @@ const props = defineProps({
 });
 
 const buttonText = computed(() => (props.lang === "pl" ? "zobacz" : "view"));
+const projectTypeLabels = computed(() =>
+  props.lang === "pl"
+    ? { commercial: "Komercyjny", personal: "Osobisty" }
+    : { commercial: "Commercial", personal: "Personal" },
+);
 const projectImageSizes =
   "(max-width: 767.98px) 100vw, (max-width: 1023.98px) 50vw, (max-width: 1399.98px) 33vw, 420px";
 
@@ -27,6 +32,11 @@ const cards = computed(() =>
     const thumbnail = projectThumbnail(post)?.url;
     return {
       ...post,
+      projectType: ["commercial", "personal"].includes(
+        post.portfolio?.project_type,
+      )
+        ? post.portfolio.project_type
+        : null,
       thumbnail,
       image: props.imageManifest[thumbnail],
       projectUrl:
@@ -54,13 +64,20 @@ onUnmounted(() => {
     <div class="container projects-container">
       <ScrambleText
         id="projects-heading"
-        class="projects-heading mb-6"
+        class="projects-heading"
         mode="write"
         tag="h2"
         :text="data.heading"
       />
       <div class="projects-grid">
         <article v-for="post in cards" :key="post.id" class="project-card">
+          <div
+            v-if="post.projectType"
+            class="project-card__type"
+            :class="`project-card__type--${post.projectType}`"
+          >
+            {{ projectTypeLabels[post.projectType] }}
+          </div>
           <picture v-if="post.thumbnail" class="project-card__thumbnail">
             <source
               v-if="post.image?.avifSrcset"
@@ -108,9 +125,11 @@ onUnmounted(() => {
 
 .projects-heading {
   padding-inline: 40px;
+  margin-bottom: 48px;
 
   @include media-breakpoint-down(lg) {
     padding-inline: 26px;
+    margin-bottom: 36px;
   }
 }
 
@@ -133,14 +152,67 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   min-width: 0;
-  border: 2px solid var(--main-color);
-  background: rgba(0, 0, 0, 0.85);
+  border: 1px solid #375033;
+  background: #030503;
+  box-shadow:
+    0 0 8px rgb(53 255 37 / 0),
+    0 0 22px rgb(53 255 37 / 0);
+  transition:
+    border-color 0.15s ease-in-out,
+    box-shadow 0.15s ease-in-out;
+
+  &:focus-within {
+    border-color: #b2ff9e;
+    box-shadow:
+      0 0 10px rgb(89 255 65 / 0.45),
+      0 0 26px rgb(53 255 37 / 0.24);
+    transition-duration: 0.25s;
+    transition-timing-function: cubic-bezier(0.55, 0, 0.8, 0.55);
+  }
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      border-color: #b2ff9e;
+      box-shadow:
+        0 0 10px rgb(89 255 65 / 0.45),
+        0 0 26px rgb(53 255 37 / 0.24);
+      transition-duration: 0.25s;
+      transition-timing-function: cubic-bezier(0.55, 0, 0.8, 0.55);
+    }
+  }
+
+  &__type {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 11px 16px;
+    border-bottom: 1px solid #344233;
+    background: #000;
+    color: #f6fff4;
+    font: 12px/1.2 monospace;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+
+    &::before {
+      content: "";
+      flex: 0 0 8px;
+      height: 8px;
+      box-sizing: border-box;
+      border: 1px solid #35ff25;
+      background: #35ff25;
+    }
+
+    &--personal::before {
+      background: transparent;
+    }
+  }
 
   &__thumbnail {
     display: block;
     aspect-ratio: 16 / 10;
     overflow: hidden;
-    border-bottom: 2px solid var(--main-color);
+    border-bottom: 1px solid #344233;
 
     img {
       display: block;
@@ -161,15 +233,17 @@ onUnmounted(() => {
 
   &__title {
     margin-bottom: 20px;
-    font-size: 28px;
+    font-size: 38px;
+    line-height: 1.1;
     overflow-wrap: anywhere;
   }
 
   &__content {
     width: 100%;
     margin-bottom: 24px;
-    font-size: 18px;
-    line-height: 1.5;
+    font-size: 23px;
+    line-height: 1.35;
+    color: #b4c2b4;
     overflow-wrap: anywhere;
 
     :deep(p) {
@@ -178,7 +252,7 @@ onUnmounted(() => {
 
     :deep(h4) {
       margin: 20px 0 12px;
-      font-size: 22px;
+      font-size: 26px;
     }
 
     :deep(li) {

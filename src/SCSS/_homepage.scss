@@ -1,0 +1,129 @@
+@use "helpers" as *;
+
+@font-face {
+  font-family: "Jersey 10";
+  src: url("/fonts/jersey10/jersey10.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+}
+
+// Keep the approved typography inside Home, including after client navigation.
+.home-page {
+  font-family: "Jersey 10", monospace;
+  font-size: 24px;
+  line-height: 1.4;
+  color: #f6fff4;
+
+  #hero,
+  h2 {
+    font-family: "Determination", monospace;
+  }
+
+  .text-lg {
+    font-size: 24px;
+    line-height: 1.42;
+  }
+
+  // Supplemental section markers leave the Experience markup intact.
+  #about-me-heading {
+    --section-label: "01 / Profil";
+  }
+  #projects-heading {
+    --section-label: "02 / Realizacje";
+  }
+  #technologies-heading {
+    --section-label: "03 / Narzędzia";
+  }
+  #experience-heading {
+    --section-label: "04 / Praktyka";
+  }
+
+  &:lang(en) {
+    #about-me-heading {
+      --section-label: "01 / Profile";
+    }
+    #projects-heading {
+      --section-label: "02 / Projects";
+    }
+    #technologies-heading {
+      --section-label: "03 / Tools";
+    }
+    #experience-heading {
+      --section-label: "04 / Practice";
+    }
+  }
+
+  #about-me-heading,
+  #projects-heading,
+  #technologies-heading,
+  #experience-heading {
+    display: block;
+    position: relative;
+    padding-right: 180px;
+
+    &::after {
+      content: var(--section-label);
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #35ff25;
+      font: 13px/1.5 monospace;
+      letter-spacing: 1.3px;
+      text-transform: uppercase;
+    }
+
+    > .scramble-animation {
+      right: 180px;
+    }
+  }
+
+  // Projects retain the existing heading inset relative to the card grid.
+  #projects-heading {
+    padding-right: 220px;
+
+    &::after {
+      right: 40px;
+    }
+    > .scramble-animation {
+      left: 40px;
+      right: 220px;
+    }
+  }
+
+  @include media-breakpoint-down(lg) {
+    .text-lg {
+      font-size: 22px;
+    }
+
+    #about-me-heading,
+    #projects-heading,
+    #technologies-heading,
+    #experience-heading {
+      padding-right: 0;
+
+      &::after {
+        position: static;
+        display: block;
+        transform: none;
+        margin-top: 16px;
+        font-size: 11px;
+        letter-spacing: 0.5px;
+      }
+
+      > .scramble-animation {
+        right: 0;
+      }
+    }
+
+    #projects-heading {
+      padding-right: 26px;
+
+      > .scramble-animation {
+        left: 26px;
+        right: 26px;
+      }
+    }
+  }
+}

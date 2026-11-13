@@ -149,7 +149,7 @@ const fadeInPl = (el) => fadeIn(el, 1.5, 0, 0, 0);
 <template>
   <PageHeader :lang="lang" />
   <MotionToggle :lang="lang" />
-  <div class="page-content">
+  <div class="page-content home-page">
     <div v-if="isMounted" class="fixed" style="top: 0">
       <DivineOrbOptimised />
     </div>
@@ -181,6 +181,8 @@ const fadeInPl = (el) => fadeIn(el, 1.5, 0, 0, 0);
 </template>
 
 <style lang="scss">
+@use "../SCSS/homepage";
+
 .page-content {
   @include media-breakpoint-down(lg) {
     padding: 0 12px;
