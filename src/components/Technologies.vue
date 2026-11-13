@@ -3,7 +3,7 @@ import { ref, nextTick, watch, onUnmounted, onMounted } from "vue";
 import { useElementsRegistry } from "../utils/useRegistry.js";
 const { registerElement, unregisterElement } = useElementsRegistry();
 import { useVisibility } from "../utils/useVisibility.js";
-import ScrollBevelContainer from "../components/Partials/ScrollBevelContainer.vue";
+import ScrollBracketContainer from "../components/Partials/ScrollBracketContainer.vue";
 import ScrambleText from "./Partials/ScrambleText.vue";
 import { motionPaused } from "../utils/motionPreference.js";
 
@@ -188,7 +188,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <ScrollBevelContainer
+  <ScrollBracketContainer
     :id="myId"
     as="section"
     labelled-by="technologies-heading"
@@ -250,7 +250,7 @@ onUnmounted(() => {
       ></ScrambleText>
       <div v-html="dataOther.text" class="strengths-wysiwyg ul--big"></div>
     </div>
-  </ScrollBevelContainer>
+  </ScrollBracketContainer>
 </template>
 
 <style lang="scss">

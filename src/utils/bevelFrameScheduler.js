@@ -39,6 +39,9 @@ const scheduleResizeFrame = () => {
   });
 };
 
+// Share content-size invalidation with window resize subscribers.
+export const requestBevelResize = scheduleResizeFrame;
+
 const ensureWindowListeners = () => {
   if (windowListenersActive || typeof window === "undefined") return;
   window.addEventListener("scroll", scheduleScrollFrame, { passive: true });

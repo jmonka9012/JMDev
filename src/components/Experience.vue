@@ -1,5 +1,5 @@
 <script setup>
-import ScrollBevelContainer from "./Partials/ScrollBevelContainer.vue";
+import ScrollBracketContainer from "./Partials/ScrollBracketContainer.vue";
 import ScrambleText from "./Partials/ScrambleText.vue";
 import { fadeIn } from "../utils/animations.js";
 import { useElementsRegistry } from "../utils/useRegistry.js";
@@ -37,7 +37,7 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <ScrollBevelContainer
+  <ScrollBracketContainer
     :tracked="false"
     :id="myId"
     as="section"
@@ -93,7 +93,7 @@ onUnmounted(() => {
         <div class="experience-item" v-html="data.education_description"></div>
       </div>
     </div>
-  </ScrollBevelContainer>
+  </ScrollBracketContainer>
 </template>
 
 <style scoped lang="scss">

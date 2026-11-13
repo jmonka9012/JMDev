@@ -1,5 +1,5 @@
 <script setup>
-import ScrollBevelContainer from "../components/Partials/ScrollBevelContainer.vue";
+import ScrollBracketContainer from "../components/Partials/ScrollBracketContainer.vue";
 import CustomButton from "./Partials/CustomButton.vue";
 import ScrambleText from "./Partials/ScrambleText.vue";
 import BevelBox from "./Partials/BevelBox.vue";
@@ -41,7 +41,7 @@ const photoSizes = "(max-width: 767.98px) 200px, 260px";
 </script>
 
 <template>
-  <ScrollBevelContainer :id="myId" as="section" labelled-by="about-me-heading">
+  <ScrollBracketContainer :id="myId" as="section" labelled-by="about-me-heading">
     <ScrambleText
       class="mb-15"
       id="about-me-heading"
@@ -86,7 +86,7 @@ const photoSizes = "(max-width: 767.98px) 200px, 260px";
       ></CustomButton>
       <div class="text-lg">jmonka.kontakt@gmail.com</div>
     </div>
-  </ScrollBevelContainer>
+  </ScrollBracketContainer>
 </template>
 
 <style scoped lang="scss">
