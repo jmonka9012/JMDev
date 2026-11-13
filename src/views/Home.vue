@@ -172,6 +172,7 @@ const fadeInPl = (el) => fadeIn(el, 1.5, 0, 0, 0);
       <Technologies
         v-on-enter="fadeInPl"
         :data="data.acf.technologies"
+        :lang="lang"
         :technologies="technologies"
       />
       <Experience :data="data.acf.experience" :lang="lang" />

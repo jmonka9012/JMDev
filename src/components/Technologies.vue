@@ -1,188 +1,144 @@
 <script setup>
-import { ref, nextTick, watch, onUnmounted, onMounted } from "vue";
+import { computed, ref, nextTick, watch, onUnmounted, onMounted } from "vue";
 import { useElementsRegistry } from "../utils/useRegistry.js";
-const { registerElement, unregisterElement } = useElementsRegistry();
 import { useVisibility } from "../utils/useVisibility.js";
-import ScrollBracketContainer from "../components/Partials/ScrollBracketContainer.vue";
+import ScrollBracketContainer from "./Partials/ScrollBracketContainer.vue";
 import ScrambleText from "./Partials/ScrambleText.vue";
+import TechnologyCategoryTabs from "./Partials/TechnologyCategoryTabs.vue";
 import { motionPaused } from "../utils/motionPreference.js";
+import { groupTechnologies } from "../utils/technologyCategories.js";
 
+const { registerElement, unregisterElement } = useElementsRegistry();
 const myId = "technologies";
-
 const props = defineProps({
-  data: {
-    type: Object,
-    required: true,
-  },
-  dataOther: {
-    type: Object,
-    required: false,
-  },
-  technologies: {
-    type: Object,
-    required: true,
-  },
-  svgAnimationClass: {
-    type: String,
-    default: "is-animating",
-  },
-  glowInterval: {
-    type: Number,
-    default: 800, // Interval in milliseconds for choosing a technology to highlight.
-  },
-  glowDuration: {
-    type: Number,
-    default: 1500, // Duration in milliseconds for which a technology remains highlighted.
-  },
+  data: { type: Object, required: true },
+  dataOther: { type: Object, required: false },
+  technologies: { type: Array, required: true },
+  lang: { type: String, default: "pl" },
+  svgAnimationClass: { type: String, default: "is-animating" },
+  glowInterval: { type: Number, default: 800 },
+  glowDuration: { type: Number, default: 1500 },
 });
 
 const wrapper = ref(null);
-const techTitleRefs = ref([]);
 const isVisible = useVisibility(wrapper);
-const hasPlayed = ref(false);
 const iconsReady = ref(false);
-
-const activeSvgIndexes = ref(new Set());
-const glowIndexes = ref(new Set());
-
-let glowIntervalId = null;
-let glowTimeouts = [];
-let revealTimeouts = [];
-let iconLoadObserver = null;
-
-const clearGlowTimeouts = () => {
-  glowTimeouts.forEach(clearTimeout);
-  glowTimeouts = [];
-};
-
-const setTechTitleRef = (el) => {
-  if (el && !techTitleRefs.value.includes(el)) {
-    techTitleRefs.value.push(el);
-  }
-};
+const selectedCategory = ref("");
+const categories = computed(() =>
+  groupTechnologies(props.technologies, props.lang),
+);
+const activeCategory = computed(
+  () =>
+    categories.value.find(
+      (category) => category.key === selectedCategory.value,
+    ) || categories.value[0],
+);
+const visibleTechnologies = computed(
+  () => activeCategory.value?.technologies || [],
+);
+const titleRefs = new Map();
+const revealedIds = ref(new Set());
+const glowIds = ref(new Set());
+let glowIntervalId;
+const glowTimeouts = new Set();
+const revealTimeouts = new Set();
+let iconLoadObserver;
+let animationRun = 0;
 
 const clearRevealTimeouts = () => {
   revealTimeouts.forEach(clearTimeout);
-  revealTimeouts = [];
+  revealTimeouts.clear();
 };
-
-const revealAllTechnologies = () => {
-  activeSvgIndexes.value = new Set(
-    Array.from({ length: props.technologies.length }, (_, index) => index),
-  );
+const stopRandomGlowLoop = () => {
+  clearInterval(glowIntervalId);
+  glowIntervalId = undefined;
+  glowTimeouts.forEach(clearTimeout);
+  glowTimeouts.clear();
+  glowIds.value.clear();
 };
-
-// Choose and highlight a technology at random.
 const triggerRandomGlow = () => {
-  if (motionPaused.value) return;
-  const count = techTitleRefs.value.length;
-  if (count === 0) return;
-
-  const availableIndexes = [];
-  for (let i = 0; i < count; i++) {
-    if (!glowIndexes.value.has(i)) {
-      availableIndexes.push(i);
-    }
-  }
-
-  if (availableIndexes.length === 0) return;
-
-  const randomIndex =
-    availableIndexes[Math.floor(Math.random() * availableIndexes.length)];
-
-  // Turn it on.
-  glowIndexes.value.add(randomIndex);
-
-  // Turn it off after the configured duration.
-  const offTimer = setTimeout(() => {
-    glowIndexes.value.delete(randomIndex);
+  if (motionPaused.value || !isVisible.value) return;
+  const candidates = visibleTechnologies.value.filter(
+    (tech) => revealedIds.value.has(tech.id) && !glowIds.value.has(tech.id),
+  );
+  if (!candidates.length) return;
+  const id = candidates[Math.floor(Math.random() * candidates.length)].id;
+  glowIds.value.add(id);
+  const timeout = setTimeout(() => {
+    glowIds.value.delete(id);
+    glowTimeouts.delete(timeout);
   }, props.glowDuration);
-
-  glowTimeouts.push(offTimer);
+  glowTimeouts.add(timeout);
 };
-
 const startRandomGlowLoop = () => {
-  if (glowIntervalId || motionPaused.value) return;
-  triggerRandomGlow(); // Trigger the first one immediately.
+  if (glowIntervalId || motionPaused.value || !isVisible.value) return;
+  triggerRandomGlow();
   glowIntervalId = setInterval(triggerRandomGlow, props.glowInterval);
 };
-
-const stopRandomGlowLoop = () => {
-  if (glowIntervalId) {
-    clearInterval(glowIntervalId);
-    glowIntervalId = null;
-  }
-  clearGlowTimeouts();
-  glowIndexes.value.clear();
+const revealAllTechnologies = () => {
+  revealedIds.value = new Set(props.technologies.map((tech) => tech.id));
 };
-
-const playTechTitles = async () => {
+const playVisibleTitles = async (run) => {
   await nextTick();
-
-  if (motionPaused.value) {
-    revealAllTechnologies();
-    return;
-  }
-
-  techTitleRefs.value.forEach((comp, index) => {
-    const revealTimeout = setTimeout(() => {
-      if (motionPaused.value) return;
-      comp.play();
-      activeSvgIndexes.value.add(index);
+  if (run !== animationRun || motionPaused.value || !isVisible.value) return;
+  const pending = visibleTechnologies.value.filter(
+    (tech) => !revealedIds.value.has(tech.id),
+  );
+  pending.forEach((tech, index) => {
+    const timeout = setTimeout(() => {
+      revealTimeouts.delete(timeout);
+      if (run !== animationRun || motionPaused.value || !isVisible.value)
+        return;
+      titleRefs.get(tech.id)?.play();
+      revealedIds.value.add(tech.id);
     }, index * 150);
-    revealTimeouts.push(revealTimeout);
+    revealTimeouts.add(timeout);
   });
-
-  const revealDuration = techTitleRefs.value.length * 150 + 300; // 300 is the text icon scramble time.
-  revealTimeouts.push(setTimeout(startRandomGlowLoop, revealDuration));
+  const timeout = setTimeout(
+    () => {
+      revealTimeouts.delete(timeout);
+      if (run === animationRun) startRandomGlowLoop();
+    },
+    pending.length * 150 + 300,
+  );
+  revealTimeouts.add(timeout);
 };
 
 watch(
-  [isVisible, motionPaused],
-  ([newVisible, isPaused]) => {
-    if (isPaused) {
-      clearRevealTimeouts();
-      stopRandomGlowLoop();
-      revealAllTechnologies();
-      hasPlayed.value = true;
-    } else if (newVisible && !hasPlayed.value) {
-      hasPlayed.value = true;
-      playTechTitles();
-    } else if (newVisible && hasPlayed.value) {
-      startRandomGlowLoop();
-    } else if (!newVisible) {
-      stopRandomGlowLoop();
-    }
+  [isVisible, motionPaused, () => activeCategory.value?.key],
+  ([visible, paused]) => {
+    const run = ++animationRun;
+    clearRevealTimeouts();
+    stopRandomGlowLoop();
+    if (paused) revealAllTechnologies();
+    else if (visible) playVisibleTitles(run);
   },
   { immediate: true },
 );
 
 onMounted(() => {
-  if (typeof IntersectionObserver === "undefined") {
-    iconsReady.value = true;
-  } else if (wrapper.value) {
+  if (typeof IntersectionObserver === "undefined") iconsReady.value = true;
+  else if (wrapper.value) {
     iconLoadObserver = new IntersectionObserver(
       ([entry]) => {
         if (!entry.isIntersecting) return;
         iconsReady.value = true;
-        iconLoadObserver?.disconnect();
+        iconLoadObserver.disconnect();
         iconLoadObserver = null;
       },
       { rootMargin: "1000px 0px" },
     );
     iconLoadObserver.observe(wrapper.value);
   }
-
-  registerElement({
-    id: myId,
-    title: props.data.menu_name,
-  });
+  registerElement({ id: myId, title: props.data.menu_name });
 });
 
 onUnmounted(() => {
+  animationRun++;
   iconLoadObserver?.disconnect();
   clearRevealTimeouts();
   stopRandomGlowLoop();
+  titleRefs.clear();
   unregisterElement(myId);
 });
 </script>
@@ -210,33 +166,58 @@ onUnmounted(() => {
         :scramble-time="150"
         :text="data.text"
       ></ScrambleText>
-      <div ref="wrapper" class="tech-cont">
-        <div class="tech" v-for="(tech, index) in technologies" :key="tech.id">
+      <div ref="wrapper">
+        <TechnologyCategoryTabs
+          :categories="categories"
+          :model-value="activeCategory?.key || ''"
+          :lang="lang"
+          @update:model-value="selectedCategory = $event"
+        />
+        <div
+          id="technology-items"
+          class="tech-cont"
+          role="region"
+          :aria-labelledby="
+            activeCategory
+              ? `technology-category-${activeCategory.key}`
+              : undefined
+          "
+        >
           <div
-            class="tech__svg"
-            :class="{
-              [svgAnimationClass]: activeSvgIndexes.has(index),
-              'is-glowing': glowIndexes.has(index),
-            }"
+            v-for="tech in technologies"
+            v-show="visibleTechnologies.includes(tech)"
+            :key="tech.id"
+            class="tech"
           >
-            <img
-              v-if="iconsReady"
-              v-svg-inject
-              :src="tech.featured_media"
-              alt=""
-              loading="lazy"
-              decoding="async"
-            />
+            <div
+              class="tech__svg"
+              :class="{
+                [svgAnimationClass]: revealedIds.has(tech.id),
+                'is-glowing': glowIds.has(tech.id),
+              }"
+            >
+              <img
+                v-if="iconsReady"
+                v-svg-inject
+                :src="tech.featured_media"
+                alt=""
+                loading="lazy"
+                decoding="async"
+              />
+            </div>
+            <ScrambleText
+              :ref="
+                (el) =>
+                  el ? titleRefs.set(tech.id, el) : titleRefs.delete(tech.id)
+              "
+              tag="h3"
+              mode="write"
+              class="tech__title"
+              :text="tech.title"
+              :scramble-time="300"
+              :autoplay="false"
+            ></ScrambleText>
           </div>
-          <ScrambleText
-            :ref="setTechTitleRef"
-            tag="h3"
-            mode="write"
-            class="tech__title"
-            :text="tech.title"
-            :scramble-time="300"
-            :autoplay="false"
-          ></ScrambleText>
         </div>
       </div>
     </div>
@@ -253,36 +234,43 @@ onUnmounted(() => {
   </ScrollBracketContainer>
 </template>
 
-<style lang="scss">
+<style scoped lang="scss">
 .tech-cont {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 50px;
 
   @include media-breakpoint-down(xl) {
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   @include media-breakpoint-down(lg) {
-    grid-template-columns: repeat(1, 1fr);
+    grid-template-columns: minmax(0, 1fr);
     gap: 30px;
   }
 }
 
 .tech {
   display: grid;
-  grid-template-columns: 75px 1fr;
+  grid-template-columns: 75px minmax(0, 1fr);
   width: 100%;
   gap: 20px;
   align-items: center;
 
   &__title {
+    overflow-wrap: anywhere;
     font-size: 30px;
     line-height: 1.4;
   }
 
   &__svg {
-    svg {
+    img {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    :deep(svg) {
       fill: #fff !important;
       width: 100%;
       height: auto;
@@ -294,29 +282,29 @@ onUnmounted(() => {
         fill 0.4s ease;
     }
 
-    path {
+    :deep(path) {
       fill: #fff !important;
       transition: fill 0.4s ease;
     }
 
-    &.is-animating svg {
+    &.is-animating :deep(svg) {
       opacity: 1;
       transform: scale(1);
     }
 
-    &.is-glowing svg,
-    &.is-glowing path {
+    &.is-glowing :deep(svg),
+    &.is-glowing :deep(path) {
       fill: var(--main-color) !important;
     }
   }
 
-  &:hover &__svg svg,
-  &:hover &__svg path {
+  &:hover &__svg :deep(svg),
+  &:hover &__svg :deep(path) {
     fill: var(--main-color) !important;
   }
 
   @include media-breakpoint-down(lg) {
-    grid-template-columns: 40px 1fr;
+    grid-template-columns: 40px minmax(0, 1fr);
     gap: 20px;
 
     &__title {
@@ -330,7 +318,7 @@ onUnmounted(() => {
 }
 
 .strengths-wysiwyg {
-  ul {
+  :deep(ul) {
     @include media-breakpoint-up(lg) {
       display: grid;
       grid-template-columns: repeat(2, 1fr);

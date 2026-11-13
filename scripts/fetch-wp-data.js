@@ -288,6 +288,7 @@ async function run() {
     const compactTech = {
       id: tech.id,
       title: tech.title?.rendered || "",
+      category: tech.portfolio_category ?? null,
       slug: tech.slug,
       excerpt: tech.excerpt?.rendered || "",
       content: tech.content?.rendered || "",
