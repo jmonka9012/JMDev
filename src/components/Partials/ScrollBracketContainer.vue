@@ -129,6 +129,12 @@ onUnmounted(() => {
 }
 
 .scroll-bracket {
+  // Maksymalny zasięg ramion względem rozmiaru kontenera.
+  --bracket-opening-width: 72%;
+  --bracket-opening-height: 62%;
+  --bracket-closing-width: 72%;
+  --bracket-closing-height: 62%;
+
   &__frames {
     position: absolute;
     inset: 0;
@@ -145,8 +151,8 @@ onUnmounted(() => {
   &__opening {
     top: 0;
     left: 0;
-    width: 104px;
-    height: 70%;
+    width: var(--bracket-opening-width);
+    height: var(--bracket-opening-height);
     border-top: 4px solid #35ff25;
     border-left: 4px solid #35ff25;
     clip-path: inset(0 var(--bracket-clip, 0%) var(--bracket-clip, 0%) 0);
@@ -155,8 +161,8 @@ onUnmounted(() => {
   &__closing {
     right: 0;
     bottom: 0;
-    width: 64px;
-    height: 32%;
+    width: var(--bracket-closing-width);
+    height: var(--bracket-closing-height);
     border-bottom: 3px solid #f6fff4;
     border-right: 3px solid #f6fff4;
     clip-path: inset(var(--bracket-clip, 0%) 0 0 var(--bracket-clip, 0%));
