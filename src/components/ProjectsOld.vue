@@ -620,7 +620,6 @@ const normalizeProjectContent = (content) =>
   position: relative;
   z-index: 5;
   user-select: none;
-  //pointer-events: auto;
   touch-action: none;
   overflow-anchor: none;
 
@@ -635,7 +634,6 @@ const normalizeProjectContent = (content) =>
 
     img {
       height: 100%;
-      //height: 300px;
       width: 100%;
       object-fit: cover;
     }

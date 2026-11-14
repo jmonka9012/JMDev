@@ -232,7 +232,6 @@ onUnmounted(() => {
     border-right: 3px solid var(--main-color);
 
     .relative {
-      //transform: translateY(calc(100%));
       transform: translateY(10px);
 
       &::before {

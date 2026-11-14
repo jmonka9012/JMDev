@@ -129,7 +129,7 @@ onUnmounted(() => {
 }
 
 .scroll-bracket {
-  // Maksymalny zasięg ramion względem rozmiaru kontenera.
+  // Maximum arm lengths relative to the container.
   --bracket-opening-width: 72%;
   --bracket-opening-height: 62%;
   --bracket-closing-width: 72%;

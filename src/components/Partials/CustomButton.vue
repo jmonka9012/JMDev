@@ -99,8 +99,8 @@ onUnmounted(() => {
     content: "";
     position: absolute;
     inset: 11px;
-    background-color: transparent; // Base state.
-    transition: background-color 0.3s ease; // Smooth the fade-out when the pointer leaves.
+    background-color: transparent;
+    transition: background-color 0.3s ease;
   }
 
   &:hover {
@@ -114,7 +114,7 @@ onUnmounted(() => {
     position: relative;
     color: #fff;
     text-transform: uppercase;
-    transition: color 0.3s ease; // Smooth the return to white when the pointer leaves.
+    transition: color 0.3s ease;
     font-size: 18px;
 
     &:hover {

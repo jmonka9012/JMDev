@@ -15,7 +15,6 @@ import { getPageData } from "../utils/getData.js";
 // Templates
 import HomeTemplate from "./Home.vue";
 import ProjectTemplate from "./Project.vue";
-// import DefaultTemplate from './Default.vue'
 
 const route = useRoute();
 const pageData = ref(null);

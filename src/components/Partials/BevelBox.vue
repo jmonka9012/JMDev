@@ -372,7 +372,6 @@ onUnmounted(() => {
 </template>
 
 <style lang="scss" scoped>
-/* The existing SCSS remains unchanged. */
 .bevel-box {
   --b-width: 5px;
 
