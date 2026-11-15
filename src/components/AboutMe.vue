@@ -56,29 +56,42 @@ const photoSizes = "(max-width: 767.98px) 200px, 260px";
       <div class="about-me-1__content">
         <div class="text-lg text-justify">{{ data.text }}</div>
       </div>
-      <div class="about-me-1__img">
-        <picture>
-          <source
-            v-if="optimizedPhoto?.avifSrcset"
-            type="image/avif"
-            :srcset="optimizedPhoto.avifSrcset"
-            :sizes="photoSizes"
-          />
-          <source
-            v-if="optimizedPhoto?.webpSrcset"
-            type="image/webp"
-            :srcset="optimizedPhoto.webpSrcset"
-            :sizes="photoSizes"
-          />
-          <img
-            :src="data.my_photo"
-            :alt="data.my_photo_alt"
-            :width="optimizedPhoto?.width"
-            :height="optimizedPhoto?.height"
-            loading="lazy"
-            decoding="async"
-          />
-        </picture>
+      <div class="about-me-1__profile">
+        <div class="about-me-1__img">
+          <picture>
+            <source
+              v-if="optimizedPhoto?.avifSrcset"
+              type="image/avif"
+              :srcset="optimizedPhoto.avifSrcset"
+              :sizes="photoSizes"
+            />
+            <source
+              v-if="optimizedPhoto?.webpSrcset"
+              type="image/webp"
+              :srcset="optimizedPhoto.webpSrcset"
+              :sizes="photoSizes"
+            />
+            <img
+              :src="data.my_photo"
+              :alt="data.my_photo_alt"
+              :width="optimizedPhoto?.width"
+              :height="optimizedPhoto?.height"
+              loading="lazy"
+              decoding="async"
+            />
+          </picture>
+        </div>
+        <a
+          class="about-me-1__github"
+          href="https://github.com/jmonka9012"
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          <svg aria-hidden="true" focusable="false" width="22" height="22">
+            <use href="/icons.svg#github-icon" />
+          </svg>
+          <span>GitHub <span aria-hidden="true">↗</span></span>
+        </a>
       </div>
     </div>
     <div class="about-me-2">
@@ -113,6 +126,38 @@ const photoSizes = "(max-width: 767.98px) 200px, 260px";
   align-items: start;
   gap: 120px;
 
+  &__profile {
+    display: grid;
+    gap: 16px;
+    min-width: 0;
+  }
+
+  &__github {
+    display: inline-flex;
+    align-items: center;
+    justify-self: start;
+    gap: 10px;
+    min-height: 44px;
+    padding-block: 6px;
+    color: #fff;
+    font-size: 22px;
+    transition: color .2s ease-out;
+
+    svg {
+      flex-shrink: 0;
+      filter: brightness(0) invert(1);
+    }
+
+    &:hover {
+      color: var(--main-color);
+    }
+
+    &:focus-visible {
+      outline: 2px solid var(--main-color);
+      outline-offset: 4px;
+    }
+  }
+
   &__img {
     padding: 8px;
     border: 1px solid #ffffff28;
@@ -139,7 +184,7 @@ const photoSizes = "(max-width: 767.98px) 200px, 260px";
     grid-template-columns: 1fr;
     gap: 50px;
 
-    &__img {
+    &__profile {
       order: -1;
       max-width: 200px;
       margin: 0 auto;
