@@ -1,8 +1,8 @@
 <script setup>
 import ScrambleText from "../Partials/ScrambleText.vue";
 import Slider from "./Slider.vue";
-import {inject} from "vue";
-import {motionPaused} from "../../utils/motionPreference.js";
+import { inject } from "vue";
+import { motionPaused } from "../../utils/motionPreference.js";
 
 const lenis = inject("lenis");
 
@@ -37,12 +37,11 @@ const scrollOptions = {
 };
 
 const scrollToChallenges = () => {
-  lenis.scrollTo('#project-challenges', {
+  lenis.scrollTo("#project-challenges", {
     ...scrollOptions,
     immediate: motionPaused.value,
-  })
-}
-
+  });
+};
 </script>
 
 <template>

@@ -141,7 +141,7 @@ const photoSizes = "(max-width: 767.98px) 200px, 260px";
     padding-block: 6px;
     color: #fff;
     font-size: 22px;
-    transition: color .2s ease-out;
+    transition: color 0.2s ease-out;
 
     svg {
       flex-shrink: 0;
