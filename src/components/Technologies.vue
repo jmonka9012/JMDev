@@ -216,6 +216,7 @@ onUnmounted(() => {
               :text="tech.title"
               :scramble-time="300"
               :autoplay="false"
+              :pending="!revealedIds.has(tech.id)"
             ></ScrambleText>
           </div>
         </div>

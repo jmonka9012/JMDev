@@ -14,6 +14,7 @@ const props = defineProps({
   once: { type: Boolean, default: true },
   wrapWords: { type: Boolean, default: true },
   autoplay: { type: Boolean, default: true },
+  pending: { type: Boolean, default: false },
 });
 
 const createTextLayers = () => {
@@ -149,7 +150,10 @@ onUnmounted(() => {
     :is="tag"
     ref="wrapper"
     class="scramble-wrapper"
-    :class="{ 'is-animating': isAnimating }"
+    :class="{
+      'is-animating': isAnimating,
+      'is-pending': pending && isEnhanced && !motionPaused,
+    }"
   >
     <span class="scramble-text">{{ text }}</span>
     <span v-if="isEnhanced" class="scramble-animation" aria-hidden="true">
@@ -183,11 +187,12 @@ onUnmounted(() => {
   position: relative;
   padding: 0;
 
-  &.is-animating {
-    .scramble-text {
-      color: transparent;
-    }
+  &.is-pending .scramble-text,
+  &.is-animating .scramble-text {
+    color: transparent;
+  }
 
+  &.is-animating {
     .scramble-animation {
       opacity: 1;
     }
