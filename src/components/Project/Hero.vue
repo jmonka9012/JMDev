@@ -1,6 +1,10 @@
 <script setup>
 import ScrambleText from "../Partials/ScrambleText.vue";
 import Slider from "./Slider.vue";
+import {inject} from "vue";
+import {motionPaused} from "../../utils/motionPreference.js";
+
+const lenis = inject("lenis");
 
 defineProps({
   title: {
@@ -25,6 +29,20 @@ defineProps({
   },
   hasChallenges: Boolean,
 });
+
+const scrollOptions = {
+  offset: -160,
+  duration: 2.2,
+  easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+};
+
+const scrollToChallenges = () => {
+  lenis.scrollTo('#project-challenges', {
+    ...scrollOptions,
+    immediate: motionPaused.value,
+  })
+}
+
 </script>
 
 <template>
@@ -49,6 +67,7 @@ defineProps({
         v-if="hasChallenges"
         class="project-hero__jump project-micro"
         href="#project-challenges"
+        @click.prevent="scrollToChallenges"
         >{{ copy.challenges }} ↓</a
       >
     </div>
