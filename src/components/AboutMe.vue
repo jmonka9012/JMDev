@@ -41,7 +41,11 @@ const photoSizes = "(max-width: 767.98px) 200px, 260px";
 </script>
 
 <template>
-  <ScrollBracketContainer :id="myId" as="section" labelled-by="about-me-heading">
+  <ScrollBracketContainer
+    :id="myId"
+    as="section"
+    labelled-by="about-me-heading"
+  >
     <ScrambleText
       class="mb-15"
       id="about-me-heading"

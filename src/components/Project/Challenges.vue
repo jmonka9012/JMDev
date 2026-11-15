@@ -1,17 +1,28 @@
 <script setup>
 import ScrambleText from "../Partials/ScrambleText.vue";
 import Challenge from "./Challenge.vue";
+
 defineProps({
-  items: { type: Array, default: () => [] },
-  manifest: { type: Object, default: () => ({}) },
-  copy: { type: Object, required: true },
+  items: {
+    type: Array,
+    default: () => [],
+  },
+  manifest: {
+    type: Object,
+    default: () => ({}),
+  },
+  copy: {
+    type: Object,
+    required: true,
+  },
 });
 </script>
+
 <template>
   <section
     v-if="items.length"
     id="project-challenges"
-    class="project-challenges project-challenges--frame-C project-challenges--no-media-columns"
+    class="project-challenges project-section"
     aria-labelledby="project-challenges-title"
   >
     <div class="container">
@@ -20,9 +31,12 @@ defineProps({
           id="project-challenges-title"
           tag="h2"
           :text="copy.challenges"
-        /><span class="project-micro">02 / {{ copy.effects }}</span>
+        />
+
+        <span class="project-micro">02 / {{ copy.effects }}</span>
       </div>
     </div>
+
     <div class="project-challenges__items">
       <Challenge
         v-for="(item, index) in items"
@@ -35,3 +49,12 @@ defineProps({
     </div>
   </section>
 </template>
+
+<style scoped lang="scss">
+.project-challenges {
+  &__items {
+    display: grid;
+    gap: var(--project-challenge-gap, 52px);
+  }
+}
+</style>

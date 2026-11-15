@@ -1,17 +1,18 @@
 <script setup>
 import { computed } from "vue";
 import { useRoute } from "vue-router";
-import { groupTechnologies } from "../utils/technologyCategories.js";
+import { useHead } from "@unhead/vue";
+
 import Hero from "../components/Project/Hero.vue";
 import Overview from "../components/Project/Overview.vue";
 import Challenges from "../components/Project/Challenges.vue";
 import ScrambleText from "../components/Partials/ScrambleText.vue";
 import ScrollBracketContainer from "../components/Partials/ScrollBracketContainer.vue";
-import "../components/Project/project.scss";
-import { useHead } from "@unhead/vue";
 import CustomButton from "../components/Partials/CustomButton.vue";
 import MotionToggle from "../components/Partials/MotionToggle.vue";
 import DivineOrbOptimised from "../components/DivineOrbOptimised.vue";
+
+import { groupTechnologies } from "../utils/technologyCategories.js";
 import { getPageData } from "../utils/getData.js";
 import {
   hasProjectText,
@@ -22,10 +23,16 @@ import {
   sanitizeProjectHtml,
 } from "../utils/projectContent.js";
 
+import "../SCSS/_project.scss";
+
 const props = defineProps({
-  data: { type: Object, required: true },
+  data: {
+    type: Object,
+    required: true,
+  },
   preview: Boolean,
 });
+
 const route = useRoute();
 const lang = computed(() => props.data.acf?.lang || "pl");
 const home = computed(() => (lang.value === "pl" ? "/" : `/${lang.value}`));
@@ -74,6 +81,7 @@ const copy = computed(() =>
 );
 const manifest = (await getPageData("project-images")) ?? {};
 const technologyEntries = (await getPageData("technology/all")) ?? [];
+
 const technologies = computed(() => {
   const references =
     props.data.portfolio?.technology_ids ??
@@ -89,9 +97,11 @@ const technologies = computed(() => {
   );
   return [...ids].map((id) => byId.get(id)).filter(Boolean);
 });
+
 const technologyGroups = computed(() =>
   groupTechnologies(technologies.value, lang.value),
 );
+
 const title = computed(() =>
   sanitizeProjectHtml(props.data.title?.rendered ?? props.data.title ?? ""),
 );
@@ -122,13 +132,37 @@ const liveUrl = computed(() =>
       props.data.acf?.link,
   ),
 );
+
 const translationPaths = computed(
   () => props.data.portfolio?.translations || {},
 );
+const languageLinks = computed(() =>
+  Object.entries(translationPaths.value)
+    .filter(([locale]) => locale !== lang.value)
+    .map(([locale, path]) => ({
+      locale,
+      to: props.preview
+        ? {
+            path: "/design-lab/project",
+            query: {
+              ...route.query,
+              lang: locale,
+              project: path.split("/").filter(Boolean).at(-1),
+            },
+          }
+        : path,
+      label:
+        locale === "en"
+          ? "Zmień język na angielski"
+          : "Change language to Polish",
+    })),
+);
+
 const siteUrl = (import.meta.env.VITE_SITE_URL || "https://jmdev.pl").replace(
   /\/$/,
   "",
 );
+
 useHead(
   computed(() => {
     const seo = props.data.portfolio?.seo || {};
@@ -176,34 +210,15 @@ useHead(
     };
   }),
 );
-
-const languageLinks = computed(() =>
-  Object.entries(translationPaths.value)
-    .filter(([locale]) => locale !== lang.value)
-    .map(([locale, path]) => ({
-      locale,
-      to: props.preview
-        ? {
-            path: "/design-lab/project",
-            query: {
-              ...route.query,
-              lang: locale,
-              project: path.split("/").filter(Boolean).at(-1),
-            },
-          }
-        : path,
-      label:
-        locale === "en"
-          ? "Zmień język na angielski"
-          : "Change language to Polish",
-    })),
-);
 </script>
+
 <template>
   <div class="project-background" aria-hidden="true">
     <DivineOrbOptimised :show-orb="false" />
   </div>
+
   <MotionToggle :lang="lang" />
+
   <RouterLink
     v-for="link in languageLinks"
     :key="link.locale"
@@ -214,15 +229,18 @@ const languageLinks = computed(() =>
     :aria-label="link.label"
     >{{ link.locale.toUpperCase() }}</RouterLink
   >
+
   <main id="main-content" class="project-page" :lang="lang" tabindex="-1">
-    <nav class="project-nav container">
+    <nav class="project-page__nav container">
       <CustomButton
+        class="project-page__back"
         :key="lang"
         :link="`${home}#projects`"
         target="_self"
         :text="copy.back"
       />
     </nav>
+
     <article :key="data.id">
       <Hero
         :title="titleText"
@@ -232,30 +250,39 @@ const languageLinks = computed(() =>
         :copy="copy"
         :has-challenges="!!challenges.length"
       />
+
       <Overview
         :overview="overview"
         :technology-groups="technologyGroups"
         :live-url="liveUrl"
         :copy="copy"
       />
+
       <Challenges :items="challenges" :manifest="manifest" :copy="copy" />
+
       <ScrollBracketContainer
         v-if="outcome"
         id="project-outcome"
-        class="project-outcome"
+        class="project-outcome project-section"
         as="section"
         labelled-by="project-outcome-title"
-        ><div class="project-section-heading">
+      >
+        <div class="project-section-heading">
           <ScrambleText
             id="project-outcome-title"
             tag="h2"
             :text="copy.outcome"
-          /><span class="project-micro">03 / {{ copy.outcome }}</span>
+          />
+
+          <span class="project-micro">03 / {{ copy.outcome }}</span>
         </div>
-        <p>{{ outcome }}</p></ScrollBracketContainer
-      >
-      <footer class="project-end container">
+
+        <p>{{ outcome }}</p>
+      </ScrollBracketContainer>
+
+      <footer class="project-page__footer container">
         <CustomButton
+          class="project-page__back"
           :key="lang"
           :link="`${home}#projects`"
           target="_self"
@@ -265,3 +292,81 @@ const languageLinks = computed(() =>
     </article>
   </main>
 </template>
+
+<style scoped lang="scss">
+.project-background {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.project-page {
+  --project-line: #ffffff30;
+  --project-divider: #ffffff85;
+  position: relative;
+  z-index: 1;
+  padding: 44px 0 100px;
+  color: #f6fff4;
+  font:
+    24px/1.45 "Jersey 10",
+    monospace;
+
+  &__nav {
+    margin-bottom: 64px;
+  }
+  &__footer {
+    display: flex;
+    justify-content: flex-end;
+  }
+  .project-page__back {
+    margin: 0;
+  }
+
+  @media (max-width: 767px) {
+    font-size: 22px;
+    padding-top: 28px;
+
+    &__nav {
+      margin-bottom: 40px;
+    }
+    &__footer {
+      flex-direction: column;
+      align-items: flex-end;
+    }
+  }
+}
+
+.project-language {
+  position: fixed;
+  right: 32px;
+  top: 32px;
+  z-index: 10000;
+  padding: 10px 17px;
+  font: 24px "Determination";
+  transition: all 0.2s ease-out;
+
+  &:hover {
+    color: black;
+    background: white;
+  }
+  &:focus-visible {
+    outline: 2px solid var(--main-color);
+    outline-offset: 3px;
+  }
+
+  @media (max-width: 1199px) {
+    padding: 7px 14px;
+    font-size: 20px;
+    color: black;
+    background: white;
+    top: auto;
+    bottom: 20px;
+    right: 32px;
+  }
+}
+
+.project-outcome p {
+  max-width: 74ch;
+}
+</style>

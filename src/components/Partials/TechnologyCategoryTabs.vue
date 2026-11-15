@@ -2,10 +2,20 @@
 import { categoryKeyAt } from "../../utils/technologyCategories.js";
 
 const props = defineProps({
-  categories: { type: Array, required: true },
-  modelValue: { type: String, default: "" },
-  lang: { type: String, default: "pl" },
+  categories: {
+    type: Array,
+    required: true,
+  },
+  modelValue: {
+    type: String,
+    default: "",
+  },
+  lang: {
+    type: String,
+    default: "pl",
+  },
 });
+
 const emit = defineEmits(["update:modelValue"]);
 const buttons = new Map();
 
@@ -34,6 +44,7 @@ const onKeydown = (event) => {
         (el) =>
           el ? buttons.set(category.key, el) : buttons.delete(category.key)
       "
+      class="technology-categories__button"
       type="button"
       :aria-pressed="modelValue === category.key"
       aria-controls="technology-items"
@@ -54,7 +65,7 @@ const onKeydown = (event) => {
   margin-bottom: 48px;
   border-bottom: 1px solid #344233;
 
-  button {
+  &__button {
     --tab-layer-opacity: 0;
     --tab-layer-offset: 10px;
     --tab-text-color: #b4c2b4;
@@ -116,7 +127,7 @@ const onKeydown = (event) => {
     gap: 16px 18px;
     padding-bottom: 20px;
     margin-bottom: 40px;
-    button {
+    &__button {
       padding: 10px 12px;
       font-size: 22px;
     }

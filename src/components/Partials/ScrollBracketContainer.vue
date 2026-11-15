@@ -1,6 +1,7 @@
 <script setup>
 import { onMounted, onUnmounted, ref, watch } from "vue";
 import { gsap } from "gsap";
+
 import { motionPaused } from "../../utils/motionPreference.js";
 import {
   requestBevelResize,
@@ -9,14 +10,24 @@ import {
 } from "../../utils/bevelFrameScheduler.js";
 
 defineProps({
-  as: { type: String, default: "div" },
-  labelledBy: { type: String, default: undefined },
-  tracked: { type: Boolean, default: false },
+  as: {
+    type: String,
+    default: "div",
+  },
+  labelledBy: {
+    type: String,
+    default: undefined,
+  },
+  tracked: {
+    type: Boolean,
+    default: false,
+  },
 });
 
 const container = ref(null);
 const frames = ref(null);
 const clip = { ratio: 0 };
+
 let visible = false;
 let visibilityObserver;
 let resizeObserver;
@@ -31,8 +42,7 @@ const renderClip = () => {
 const updateRatio = (instant = false) => {
   if (!visible || motionPaused.value || !container.value) return;
 
-  // One measurement per visible container, shared scroll/resize frame.
-  // Match the old bevel's distance curve without scaling the content.
+  // Share geometry measurements through the frame scheduler.
   const rect = container.value.getBoundingClientRect();
   const distance = Math.abs(
     window.innerHeight / 2 - (rect.top + rect.height / 2),
@@ -84,8 +94,7 @@ onMounted(() => {
   });
   visibilityObserver.observe(container.value);
 
-  // A category change can also move subsequent containers. Notify all visible
-  // subscribers through the existing scheduler, coalescing observer callbacks.
+  // Content changes can also move other visible containers.
   resizeObserver = new ResizeObserver(requestBevelResize);
   resizeObserver.observe(container.value);
 });
@@ -110,6 +119,7 @@ onUnmounted(() => {
       <span class="scroll-bracket__opening"></span>
       <span class="scroll-bracket__closing"></span>
     </div>
+
     <div class="scroll-bracket__content"><slot></slot></div>
   </component>
 </template>

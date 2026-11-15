@@ -1,9 +1,21 @@
 <script setup>
 defineProps({
-  image: { type: Object, required: true },
-  manifest: { type: Object, default: () => ({}) },
-  sizes: { type: String, default: "(max-width: 1399px) 100vw, 1320px" },
-  eager: { type: Boolean, default: false },
+  image: {
+    type: Object,
+    required: true,
+  },
+  manifest: {
+    type: Object,
+    default: () => ({}),
+  },
+  sizes: {
+    type: String,
+    default: "(max-width: 1399px) 100vw, 1320px",
+  },
+  eager: {
+    type: Boolean,
+    default: false,
+  },
 });
 </script>
 
@@ -21,6 +33,7 @@ defineProps({
       :sizes="sizes"
       type="image/webp"
     />
+
     <img
       :src="image.url"
       :alt="image.alt"
@@ -38,6 +51,7 @@ img {
   display: block;
   width: 100%;
 }
+
 img {
   height: auto;
 }

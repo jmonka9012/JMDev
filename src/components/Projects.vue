@@ -1,22 +1,36 @@
 <script setup>
 import { computed, onMounted, onUnmounted } from "vue";
-import { useElementsRegistry } from "../utils/useRegistry.js";
+
 import ScrambleText from "./Partials/ScrambleText.vue";
 import CustomButton from "./Partials/CustomButton.vue";
+
+import { useElementsRegistry } from "../utils/useRegistry.js";
 import {
   projectThumbnail,
   sanitizeProjectHtml,
 } from "../utils/projectContent.js";
 
+const props = defineProps({
+  data: {
+    type: Object,
+    required: true,
+  },
+  lang: {
+    type: String,
+    required: false,
+  },
+  projects: {
+    type: Array,
+    required: true,
+  },
+  imageManifest: {
+    type: Object,
+    required: true,
+  },
+});
+
 const { registerElement, unregisterElement } = useElementsRegistry();
 const myId = "projects";
-
-const props = defineProps({
-  data: { type: Object, required: true },
-  lang: { type: String, required: false },
-  projects: { type: Array, required: true },
-  imageManifest: { type: Object, required: true },
-});
 
 const buttonText = computed(() => (props.lang === "pl" ? "zobacz" : "view"));
 const projectTypeLabels = computed(() =>
@@ -69,6 +83,7 @@ onUnmounted(() => {
         tag="h2"
         :text="data.heading"
       />
+
       <div class="projects-grid">
         <article v-for="post in cards" :key="post.id" class="project-card">
           <div
@@ -78,6 +93,7 @@ onUnmounted(() => {
           >
             {{ projectTypeLabels[post.projectType] }}
           </div>
+
           <picture v-if="post.thumbnail" class="project-card__thumbnail">
             <source
               v-if="post.image?.avifSrcset"
@@ -100,9 +116,11 @@ onUnmounted(() => {
               decoding="async"
             />
           </picture>
+
           <div class="project-card__body">
             <h3 class="project-card__title">{{ post.title }}</h3>
             <div class="project-card__content" v-html="post.content"></div>
+
             <CustomButton
               v-if="post.projectUrl"
               class="project-card__button"

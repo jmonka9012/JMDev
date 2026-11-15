@@ -1,0 +1,118 @@
+@use "homepage";
+
+.project-page {
+  h1,
+  h2 {
+    font-family: "Determination", monospace;
+  }
+  h1 {
+    font-size: clamp(64px, 8vw, 120px);
+    line-height: 1;
+    overflow-wrap: anywhere;
+  }
+  h2 {
+    font-size: clamp(36px, 4vw, 56px);
+  }
+  h3 {
+    font-size: 36px;
+  }
+  h4 {
+    font-size: 22px;
+  }
+  p {
+    white-space: pre-line;
+  }
+
+  button,
+  a,
+  select {
+    touch-action: manipulation;
+  }
+
+  :is(a, button, select):focus-visible {
+    outline: 2px solid var(--main-color);
+    outline-offset: 6px;
+  }
+
+  .btn {
+    display: inline-block;
+    margin-top: 28px;
+    max-width: 100%;
+  }
+  .btn__inner {
+    overflow-wrap: anywhere;
+  }
+
+  .project-micro {
+    font: 12px/1.6 monospace;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  .project-muted {
+    color: #a8b0a6;
+  }
+
+  .project-rich {
+    overflow-wrap: anywhere;
+
+    p + p {
+      margin-top: 22px;
+    }
+    ul,
+    ol {
+      margin-block: 18px;
+      padding-left: 24px;
+    }
+    ol {
+      list-style: decimal;
+    }
+    h2,
+    h3,
+    h4 {
+      margin-block: 24px 12px;
+    }
+    a {
+      color: var(--main-color);
+      text-decoration: underline;
+    }
+    pre,
+    table {
+      display: block;
+      overflow-x: auto;
+      max-width: 100%;
+    }
+    img {
+      max-width: 100%;
+      height: auto;
+    }
+  }
+
+  .project-section,
+  .project-section.container.scroll-bracket {
+    margin-bottom: var(--project-section-gap, 140px);
+
+    @media (max-width: 1023px) {
+      margin-bottom: calc(var(--project-section-gap, 140px) * 0.6);
+    }
+  }
+}
+
+.project-section-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 44px;
+
+  > .project-micro {
+    flex-shrink: 0;
+    color: var(--main-color);
+  }
+
+  @media (max-width: 767px) {
+    align-items: start;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 32px;
+  }
+}
