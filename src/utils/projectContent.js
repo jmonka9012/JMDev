@@ -88,6 +88,15 @@ export const sanitizeProjectHtml = (html) => {
   return serialize(fragment);
 };
 
+export const projectPlainText = (html) => {
+  const fragment = parseFragment(sanitizeProjectHtml(html));
+  const text = (node) =>
+    node.nodeName === "#text"
+      ? node.value
+      : (node.childNodes ?? []).map(text).join("");
+  return text(fragment);
+};
+
 export const hasProjectText = (html) => {
   const fragment = parseFragment(sanitizeProjectHtml(html));
   const text = (node) =>

@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import fs from "node:fs";
 import {
   hasProjectText,
+  projectPlainText,
   projectGallery,
   projectThumbnail,
   projectChallenges,
@@ -153,4 +154,12 @@ test("managed empty Hero remains empty instead of restoring historical photos", 
     }),
     [],
   );
+});
+
+test("animated project titles preserve decoded text without HTML or active content", () => {
+  assert.equal(
+    projectPlainText("<strong>R&amp;D</strong> &ndash; Site"),
+    "R&D – Site",
+  );
+  assert.equal(projectPlainText("Project<script>unsafe()</script>"), "Project");
 });

@@ -10,7 +10,21 @@ import * as animations from "./utils/animations.js";
 import { ref } from "vue";
 import { initializeMotionPreference } from "./utils/motionPreference.js";
 
+const designLabView = import.meta.env.DEV
+  ? import.meta.glob("./design-lab/ProjectDesignLab.vue")[
+      "./design-lab/ProjectDesignLab.vue"
+    ]
+  : undefined;
+
 const routes = [
+  ...(designLabView
+    ? [
+        {
+          path: "/design-lab/project",
+          component: designLabView,
+        },
+      ]
+    : []),
   { path: "/", component: PageResolver },
   { path: "/:lang([a-z]{2})", component: PageResolver },
   {

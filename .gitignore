@@ -32,3 +32,6 @@ dist-ssr
 # Files created with build
 /public/files
 /public/data
+
+# Local project design previews
+/src/design-lab/
