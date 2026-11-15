@@ -2,7 +2,6 @@
 import ScrollBracketContainer from "../components/Partials/ScrollBracketContainer.vue";
 import CustomButton from "./Partials/CustomButton.vue";
 import ScrambleText from "./Partials/ScrambleText.vue";
-import BevelBox from "./Partials/BevelBox.vue";
 import { useElementsRegistry } from "../utils/useRegistry.js";
 const { registerElement, unregisterElement } = useElementsRegistry();
 import { computed, onMounted, onUnmounted } from "vue";
@@ -57,7 +56,7 @@ const photoSizes = "(max-width: 767.98px) 200px, 260px";
       <div class="about-me-1__content">
         <div class="text-lg text-justify">{{ data.text }}</div>
       </div>
-      <BevelBox class="about-me-1__img">
+      <div class="about-me-1__img">
         <picture>
           <source
             v-if="optimizedPhoto?.avifSrcset"
@@ -80,7 +79,7 @@ const photoSizes = "(max-width: 767.98px) 200px, 260px";
             decoding="async"
           />
         </picture>
-      </BevelBox>
+      </div>
     </div>
     <div class="about-me-2">
       <CustomButton
@@ -113,6 +112,24 @@ const photoSizes = "(max-width: 767.98px) 200px, 260px";
   grid-template-columns: 1fr 260px;
   align-items: start;
   gap: 120px;
+
+  &__img {
+    padding: 8px;
+    border: 1px solid #ffffff28;
+    background: #000;
+    box-shadow:
+      5px 5px 0 #000,
+      6px 6px 0 #ffffff35;
+
+    picture,
+    img {
+      display: block;
+      width: 100%;
+    }
+    img {
+      height: auto;
+    }
+  }
 
   @include media-breakpoint-down(lg) {
     gap: 40px;
