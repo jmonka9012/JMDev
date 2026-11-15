@@ -92,6 +92,7 @@ const finishSlideChange = async (swiper) => {
   sizingIndex.value = swiper.activeIndex;
 
   await nextTick();
+  if (swiper.destroyed || !galleryElement.value) return;
   measureChrome();
   swiper.updateAutoHeight(motionPaused.value ? 0 : 320);
 };

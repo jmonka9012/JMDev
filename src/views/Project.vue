@@ -19,6 +19,7 @@ import {
   projectPlainText,
   projectChallenges,
   projectGallery,
+  projectThumbnail,
   safeProjectUrl,
   sanitizeProjectHtml,
 } from "../utils/projectContent.js";
@@ -170,8 +171,12 @@ useHead(
     const canonical = path ? `${siteUrl}${path}` : null;
     const titleText =
       seo.title ||
-      `${props.data.title?.rendered?.replace(/<[^>]*>/g, "") || "Project"} | Jacek Mońka`;
-    const description = seo.meta_description || "";
+      `${projectPlainText(props.data.title?.rendered || "Project")} | Jacek Mońka`;
+    const description =
+      seo.meta_description ||
+      projectPlainText(props.data.excerpt?.rendered || "");
+    const image = projectThumbnail(props.data);
+    const imageUrl = image ? new URL(image.url, siteUrl).href : null;
     return {
       title: props.preview ? `${titleText} — Design Lab` : titleText,
       htmlAttrs: { lang: lang.value },
@@ -181,7 +186,38 @@ useHead(
           content: props.preview ? "noindex, nofollow" : "index, follow",
         },
         { name: "description", content: description },
-        { name: "keywords", content: (seo.keywords || []).join(", ") },
+        { property: "og:type", content: "website" },
+        { property: "og:site_name", content: "Jacek Mońka" },
+        {
+          property: "og:locale",
+          content: lang.value === "pl" ? "pl_PL" : "en_GB",
+        },
+        {
+          name: "twitter:card",
+          content: imageUrl ? "summary_large_image" : "summary",
+        },
+        { name: "twitter:title", content: titleText },
+        { name: "twitter:description", content: description },
+        ...(imageUrl
+          ? [
+              { property: "og:image", content: imageUrl },
+              { property: "og:image:alt", content: image.alt || titleText },
+              ...(image.width && image.height
+                ? [
+                    {
+                      property: "og:image:width",
+                      content: String(image.width),
+                    },
+                    {
+                      property: "og:image:height",
+                      content: String(image.height),
+                    },
+                  ]
+                : []),
+              { name: "twitter:image", content: imageUrl },
+              { name: "twitter:image:alt", content: image.alt || titleText },
+            ]
+          : []),
         { property: "og:title", content: titleText },
         { property: "og:description", content: description },
         ...(canonical ? [{ property: "og:url", content: canonical }] : []),

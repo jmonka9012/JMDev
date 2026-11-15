@@ -25,6 +25,7 @@ export const vOnEnter = {
     });
   },
   unmounted(el) {
+    gsap.killTweensOf(el);
     el._motionWatchStop?.();
     delete el._motionWatchStop;
 

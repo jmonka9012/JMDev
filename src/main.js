@@ -46,8 +46,10 @@ const routes = [
     component: PageResolver,
     meta: { template: "project" },
   },
+  { path: "/404", component: PageResolver },
   { path: "/:slug", component: PageResolver },
   { path: "/:lang([a-z]{2})/:slug", component: PageResolver },
+  { path: "/:pathMatch(.*)*", component: PageResolver },
 ];
 
 export const createApp = ViteSSG(
@@ -78,8 +80,6 @@ export const createApp = ViteSSG(
           : false,
       );
       app.provide("isTouch", isTouch);
-
-      console.log(router.getRoutes());
     }
   },
 );

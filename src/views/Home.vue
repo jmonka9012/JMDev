@@ -80,7 +80,6 @@ const personSchema = {
   jobTitle: "Front-end Developer",
   description: seo.description,
   image: socialImage,
-  inLanguage: lang,
   knowsAbout: ["JavaScript", "Vue.js", "PHP", "WordPress"],
 };
 

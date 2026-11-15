@@ -16,24 +16,54 @@ const publicFilesDir = path.join(publicDir, "files");
 const outputDir = path.join(publicFilesDir, "optimized");
 const manifestPath = path.join(publicDir, "data", "project-images.json");
 
-
 const targetWidths = [720, 1200, 1600];
-const additionalImages = [
-  {
-    url: "/files/image-3.jpg",
-    widths: [480, 768],
-  },
-];
+const readHomepageImages = async () => {
+  const languages = JSON.parse(
+    await fs.readFile(path.join(publicDir, "data", "languages.json"), "utf8"),
+  );
+  const images = new Set();
+  for (const locale of Object.keys(languages)) {
+    const filename = path.join(
+      publicDir,
+      "data",
+      ...(locale === "pl" ? [] : [locale]),
+      "index.json",
+    );
+    try {
+      const page = JSON.parse(await fs.readFile(filename, "utf8"));
+      const url = page.acf?.about_me?.my_photo;
+      if (/^\/files\/.+\.(png|jpe?g|webp)$/i.test(url || "")) images.add(url);
+    } catch (error) {
+      if (error.code !== "ENOENT") throw error;
+    }
+  }
+  return [...images].map((url) => ({ url, widths: [480, 768] }));
+};
 
 const readProjects = async () => {
   const projects = [];
   let locales = ["pl", "en"];
   try {
-    locales = Object.keys(JSON.parse(await fs.readFile(path.join(publicDir, "data", "languages.json"), "utf8")));
+    locales = Object.keys(
+      JSON.parse(
+        await fs.readFile(
+          path.join(publicDir, "data", "languages.json"),
+          "utf8",
+        ),
+      ),
+    );
   } catch (error) {
     if (error.code !== "ENOENT") throw error;
   }
-  const projectDataFiles = locales.map((locale) => path.join(publicDir, "data", ...(locale === "pl" ? [] : [locale]), "post", "all.json"));
+  const projectDataFiles = locales.map((locale) =>
+    path.join(
+      publicDir,
+      "data",
+      ...(locale === "pl" ? [] : [locale]),
+      "post",
+      "all.json",
+    ),
+  );
 
   for (const dataFile of projectDataFiles) {
     try {
@@ -176,7 +206,7 @@ const run = async () => {
   const projects = await readProjects();
   const imageConfigs = [
     ...collectImageUrls(projects).map((url) => ({ url, widths: targetWidths })),
-    ...additionalImages,
+    ...(await readHomepageImages()),
   ];
   const manifest = {};
 

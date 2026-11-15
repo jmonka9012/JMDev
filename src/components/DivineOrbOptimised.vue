@@ -18,6 +18,8 @@ const touchPos = inject("touchPos");
 import { ASCII_STRING_NO_JP } from "../utils/asciiConstants.js";
 
 let p5Instance = null;
+let disposed = false;
+let resizeTimer;
 const container = ref(null);
 let documentResizeObserver = null;
 let documentResizeTimer = null;
@@ -292,8 +294,6 @@ const sketch = (p) => {
     // p.pop();
   };
 
-  let resizeTimer;
-
   p.windowResized = () => {
     p.resizeCanvas(p.windowWidth, p.windowHeight);
     syncCanvasPixelDensity();
@@ -333,6 +333,7 @@ const handleScroll = (e) => {
 onMounted(async () => {
   if (typeof window !== "undefined") {
     const p5 = (await import("../utils/p5DivineOrb.js")).default;
+    if (disposed) return;
 
     window.addEventListener("mousemove", onFirstInteraction, { passive: true });
     window.addEventListener("touchstart", onFirstInteraction, {
@@ -348,6 +349,8 @@ onMounted(async () => {
 });
 
 onUnmounted(() => {
+  disposed = true;
+  clearTimeout(resizeTimer);
   clearTimeout(documentResizeTimer);
   documentResizeObserver?.disconnect();
   documentResizeObserver = null;

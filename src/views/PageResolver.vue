@@ -1,5 +1,10 @@
 <template>
-  <component v-if="pageData" :is="dynamicComponent" :data="pageData" />
+  <component
+    v-if="pageData"
+    :is="dynamicComponent"
+    :key="pageData.id"
+    :data="pageData"
+  />
   <main v-else id="main-content" tabindex="-1">
     <h1>{{ errorCopy.heading }}</h1>
     <a :href="errorCopy.homeHref">{{ errorCopy.homeLink }}</a>
@@ -7,7 +12,7 @@
 </template>
 
 <script setup>
-import { computed, ref, shallowRef, watch } from "vue";
+import { computed, ref, shallowRef, watch, onBeforeUnmount } from "vue";
 import { useRoute } from "vue-router";
 import { useHead } from "@unhead/vue";
 import { getPageData } from "../utils/getData.js";
@@ -39,12 +44,23 @@ const templateMap = {
   project: ProjectTemplate,
 };
 
-const loadPage = async () => {
-  pageData.value = await getPageData(route.path);
+let loadVersion = 0;
+onBeforeUnmount(() => {
+  loadVersion++;
+});
 
-  if (pageData.value) {
-    const templateName =
-      route.meta.template || pageData.value?.acf?.template || "home";
+const loadPage = async () => {
+  const version = ++loadVersion;
+  let data;
+  try {
+    data = await getPageData(route.path);
+  } catch {
+    data = null;
+  }
+  if (version !== loadVersion) return;
+  pageData.value = data;
+  if (data) {
+    const templateName = route.meta.template || data.acf?.template || "home";
     dynamicComponent.value = templateMap[templateName] || HomeTemplate;
   }
 };
