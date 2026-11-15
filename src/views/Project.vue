@@ -110,10 +110,7 @@ const technologies = computed(() => {
       Number(item?.ID ?? item?.id ?? item),
     ),
   );
-  const byId = new Map(
-    technologyEntries.map((item) => [Number(item.id), item]),
-  );
-  return [...ids].map((id) => byId.get(id)).filter(Boolean);
+  return technologyEntries.filter((tech) => ids.has(Number(tech.id)));
 });
 
 const technologyGroups = computed(() =>
