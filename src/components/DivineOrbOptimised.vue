@@ -341,6 +341,9 @@ onMounted(async () => {
     });
 
     if (container.value) {
+      pageDelta = -lenis.actualScroll;
+      pageVelocity = 0;
+
       p5Instance = new p5(sketch, container.value);
       lenis.on("scroll", handleScroll);
       startDocumentResizeObserver();
