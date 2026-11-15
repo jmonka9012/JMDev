@@ -12,7 +12,15 @@ import MotionToggle from "../components/Partials/MotionToggle.vue";
 import { fadeIn } from "../utils/animations.js";
 
 import { getPageData } from "../utils/getData.js";
-import { ref, onMounted, onUnmounted } from "vue";
+import {
+  ref,
+  inject,
+  nextTick,
+  onMounted,
+  onBeforeUnmount,
+  onUnmounted,
+} from "vue";
+import { rememberHomeScroll, takeHomeReturn } from "../utils/homeScroll.js";
 import { refreshState } from "../utils/refreshState.js";
 
 import { gsap } from "gsap";
@@ -24,16 +32,36 @@ gsap.registerPlugin(ScrollTrigger);
 const isMounted = ref(false);
 
 let observer;
+let disposed = false;
+const lenis = inject("lenis");
+const homePath = () =>
+  props.data.acf.lang === "pl" ? "/" : `/${props.data.acf.lang}`;
+const rememberScroll = () => rememberHomeScroll(homePath(), window.scrollY);
 
-onMounted(() => {
+onMounted(async () => {
   isMounted.value = true;
+  window.addEventListener("pagehide", rememberScroll);
+  const returnPosition = takeHomeReturn(homePath());
   // Keep scroll triggers in sync.
   observer = new ResizeObserver(() => {
     ScrollTrigger.refresh();
   });
   observer.observe(document.body);
 
-  refreshState();
+  await refreshState();
+  if (returnPosition !== null) {
+    await document.fonts.ready;
+    await nextTick();
+    if (disposed) return;
+    lenis.resize();
+    lenis.scrollTo(returnPosition, { immediate: true, force: true });
+  }
+});
+
+onBeforeUnmount(() => {
+  disposed = true;
+  rememberScroll();
+  window.removeEventListener("pagehide", rememberScroll);
 });
 
 onUnmounted(() => {

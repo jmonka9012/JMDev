@@ -24,6 +24,8 @@ import {
   sanitizeProjectHtml,
 } from "../utils/projectContent.js";
 
+import { prepareHomeReturn } from "../utils/homeScroll.js";
+
 import "../SCSS/_project.scss";
 
 const props = defineProps({
@@ -37,6 +39,21 @@ const props = defineProps({
 const route = useRoute();
 const lang = computed(() => props.data.acf?.lang || "pl");
 const home = computed(() => (lang.value === "pl" ? "/" : `/${lang.value}`));
+const returnToHome = (event) => {
+  if (
+    event.defaultPrevented ||
+    event.button !== 0 ||
+    event.metaKey ||
+    event.ctrlKey ||
+    event.shiftKey ||
+    event.altKey
+  )
+    return;
+  if (!prepareHomeReturn(home.value)) return;
+  event.preventDefault();
+  window.location.assign(home.value);
+};
+
 const copy = computed(() =>
   lang.value === "pl"
     ? {
@@ -274,6 +291,7 @@ useHead(
         :link="`${home}#projects`"
         target="_self"
         :text="copy.back"
+        @click="returnToHome"
       />
     </nav>
 
@@ -323,6 +341,7 @@ useHead(
           :link="`${home}#projects`"
           target="_self"
           :text="copy.back"
+          @click="returnToHome"
         />
       </footer>
     </article>
