@@ -7,6 +7,7 @@ import CustomButton from "./Partials/CustomButton.vue";
 import { useElementsRegistry } from "../utils/useRegistry.js";
 import {
   projectThumbnail,
+  projectPlainText,
   sanitizeProjectHtml,
 } from "../utils/projectContent.js";
 
@@ -46,6 +47,7 @@ const cards = computed(() =>
     const thumbnail = projectThumbnail(post)?.url;
     return {
       ...post,
+      title: projectPlainText(post.title),
       projectType: ["commercial", "personal"].includes(
         post.portfolio?.project_type,
       )
