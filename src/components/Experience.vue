@@ -1,246 +1,296 @@
 <script setup>
+import { computed, onMounted, onUnmounted } from "vue";
+
 import ScrollBracketContainer from "./Partials/ScrollBracketContainer.vue";
 import ScrambleText from "./Partials/ScrambleText.vue";
-import { fadeIn } from "../utils/animations.js";
-import { useElementsRegistry } from "../utils/useRegistry.js";
-import { onMounted, onUnmounted, ref } from "vue";
-const { registerElement, unregisterElement } = useElementsRegistry();
 
-const myId = "experience";
-const jobEl = ref(null);
-const eduEl = ref(null);
+import { fadeIn } from "../utils/animations.js";
+import { experienceEntries } from "../utils/experienceContent.js";
+import { useElementsRegistry } from "../utils/useRegistry.js";
 
 const props = defineProps({
-  data: { type: Object, required: true },
-  lang: { type: String, required: false },
+  data: {
+    type: Object,
+    required: true,
+  },
+  lang: {
+    type: String,
+    default: "pl",
+  },
 });
 
-const years = [2021, 2022, 2023, 2024, 2025, 2026];
+const { registerElement, unregisterElement } = useElementsRegistry();
+const sectionId = "experience";
 
-const animateExperience = (containerEl) => {
-  fadeIn(containerEl, 1.5, 0, 0, 0);
+const entries = computed(() => experienceEntries(props.data, props.lang));
+const chronologyLabel = computed(() =>
+  props.lang === "en" ? "Ordered by starting date" : "Według daty rozpoczęcia",
+);
 
-  if (jobEl.value) fadeIn(jobEl.value, 1, 1.5, -40, -40);
-  if (eduEl.value) fadeIn(eduEl.value, 1, 1, -40, 40);
+const animateExperience = (element) => {
+  fadeIn(element, 1.5, 0, 0, 0);
 };
 
 onMounted(() => {
-  registerElement({
-    id: myId,
-    title: props.data.menu_name,
-  });
+  registerElement({ id: sectionId, title: props.data.menu_name });
 });
 
 onUnmounted(() => {
-  unregisterElement(myId);
+  unregisterElement(sectionId);
 });
 </script>
 
 <template>
   <ScrollBracketContainer
-    :tracked="false"
-    :id="myId"
+    :id="sectionId"
+    v-on-enter="animateExperience"
+    class="experience"
     as="section"
     labelled-by="experience-heading"
-    v-on-enter="animateExperience"
   >
-    <ScrambleText
-      id="experience-heading"
-      class="mb-20"
-      tag="h2"
-      :text="data.heading"
-    ></ScrambleText>
+    <header class="experience__header">
+      <ScrambleText id="experience-heading" tag="h2" :text="data.heading" />
+    </header>
 
-    <div class="mb-30 mt-30">
-      <div class="timeline" aria-hidden="true">
-        <div v-for="year in years" :key="year" class="timeline__year">
-          <span>{{ year }}</span>
+    <p class="experience__chronology">{{ chronologyLabel }} ↓</p>
+
+    <ol class="experience__entries">
+      <li
+        v-for="entry in entries"
+        :key="entry.id"
+        class="experience__entry"
+        :class="`experience__entry--${entry.id}`"
+        :aria-labelledby="`experience-${entry.id}`"
+      >
+        <span v-if="entry.year" class="experience__year" aria-hidden="true">{{
+          entry.year
+        }}</span>
+        <p v-if="entry.category" class="experience__category">
+          {{ entry.category }}
+        </p>
+        <p v-if="entry.period" class="experience__period">{{ entry.period }}</p>
+
+        <div class="experience__identity">
+          <h3 :id="`experience-${entry.id}`">{{ entry.organization }}</h3>
+          <p v-if="entry.role" class="experience__role">{{ entry.role }}</p>
         </div>
 
-        <div ref="jobEl" class="timeline__job">
-          <div class="relative">
-            <span
-              ><span>{{ data.work_heading }}</span></span
-            >
-          </div>
-        </div>
-
-        <div ref="eduEl" class="timeline__education">
-          <div class="relative">
-            <span
-              ><span>{{ data.education_heading }}</span></span
-            >
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="experience-description">
-      <div>
-        <ScrambleText
-          class="mb-10"
-          :text="data.work_heading"
-          tag="h3"
-        ></ScrambleText>
-        <div class="experience-item" v-html="data.work_description"></div>
-      </div>
-      <div>
-        <ScrambleText
-          class="mb-10"
-          :text="data.education_heading"
-          tag="h3"
-        ></ScrambleText>
-        <div class="experience-item" v-html="data.education_description"></div>
-      </div>
-    </div>
+        <ul v-if="entry.points.length" class="experience__points">
+          <li v-for="(point, index) in entry.points" :key="index">
+            {{ point }}
+          </li>
+        </ul>
+      </li>
+    </ol>
   </ScrollBracketContainer>
 </template>
 
 <style scoped lang="scss">
-.experience-item {
-  padding-left: 30px;
-  position: relative;
-  display: inline-flex;
-  flex-direction: column;
-  gap: 10px;
+.experience.container.scroll-bracket {
+  padding: 40px 40px 48px;
 
-  &::before {
-    content: "";
-    width: 20px;
-    height: 20px;
-    position: absolute;
-    left: 0;
-    top: 0;
-    border-radius: 3px;
-    background-color: var(--main-color);
+  @media (max-width: 1023px) {
+    padding: 30px 26px;
   }
-
-  strong {
-    margin-bottom: 20px;
-    display: inline-flex;
+  @media (max-width: 600px) {
+    padding: 24px 20px;
   }
 }
 
-.experience-description {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 40px;
-
-  @include media-breakpoint-down(lg) {
-    grid-template-columns: 1fr;
+.experience {
+  &__header {
+    padding-bottom: 32px;
+    margin-bottom: 40px;
+    border-bottom: 1px solid #ffffff65;
   }
-}
 
-.timeline {
-  width: 100%;
-  display: flex;
-  justify-content: stretch;
-  position: relative;
-  height: 70px;
-  align-items: center;
-  margin-top: 55px;
-  margin-bottom: 55px;
+  &__chronology {
+    margin-bottom: 28px;
+    font: 12px/1.5 monospace;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #a8b5a4;
+  }
 
-  &::before {
-    content: "";
-    width: 100%;
-    top: 50%;
-    border-bottom: 2px solid white;
-    position: absolute;
-    height: 0;
-    transform: translateY(-50%);
+  &__entries {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+  }
+
+  &__entry {
+    position: relative;
+    display: grid;
+    grid-template-columns: 180px minmax(0, 1fr);
+    grid-template-rows: auto auto 1fr;
+    align-items: start;
+    gap: 12px 44px;
+    min-width: 0;
+    padding: 0 0 44px;
+
+    &::before {
+      content: "";
+      position: absolute;
+      left: 180px;
+      top: 7px;
+      bottom: 0;
+      width: 1px;
+      background: #ffffff50;
+    }
+
+    &::after {
+      content: "";
+      position: absolute;
+      left: 176px;
+      top: 7px;
+      width: 9px;
+      height: 9px;
+      border: 2px solid var(--main-color);
+      background: #000;
+    }
+
+    &:last-child::before {
+      bottom: 35px;
+    }
+    &--education::after {
+      border-color: #f6fff4;
+    }
   }
 
   &__year {
-    width: 100%;
-    border-left: 3px solid white;
-    position: relative;
-    display: flex;
-    align-items: start;
-    justify-content: center;
-    font-size: 18px;
+    grid-column: 1;
+    grid-row: 1;
+    padding-top: 3px;
+    font:
+      24px/1 "Determination",
+      monospace;
+    color: var(--main-color);
+  }
 
-    &:last-child {
-      border-right: 1px solid white;
-    }
+  &__entry--education &__year {
+    color: #f6fff4;
+  }
 
-    span {
-      transform: translateY(-10px);
-    }
+  &__category {
+    grid-column: 1;
+    grid-row: 2;
+    padding-right: 16px;
+    font: 10px/1.5 monospace;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: #b1c0ab;
+  }
 
-    @include media-breakpoint-down(md) {
-      font-size: 14px;
+  &__period {
+    grid-column: 1;
+    grid-row: 3;
+    padding-right: 24px;
+    font: 12px/1.6 monospace;
+    color: #f6fff4;
+  }
+
+  &__identity {
+    grid-column: 2;
+    grid-row: 1 / 3;
+    min-width: 0;
+    padding-left: 12px;
+
+    h3 {
+      font:
+        34px/1.1 "Jersey 10",
+        monospace;
+      overflow-wrap: anywhere;
     }
   }
 
-  &__job,
-  &__education {
-    position: absolute;
-    height: 10px;
-    border-left: 3px solid var(--main-color);
-    display: flex;
-    justify-content: center;
-    font-size: 24px;
-    text-align: center;
+  &__role {
+    margin-top: 8px;
+    font:
+      24px/1.25 "Jersey 10",
+      monospace;
+    color: #c9d5c5;
+  }
 
-    @include media-breakpoint-down(lg) {
-      font-size: 18px;
+  &__points {
+    grid-column: 2;
+    grid-row: 3;
+    display: grid;
+    gap: 12px;
+    min-width: 0;
+    margin: 0;
+    padding: 0 0 0 12px;
+    list-style: none;
+
+    li {
+      padding: 0 0 0 18px;
+      font:
+        17px/1.6 Arial,
+        sans-serif;
+      color: #d9e0d6;
+      overflow-wrap: anywhere;
     }
-
-    .relative {
-      height: fit-content;
-      width: fit-content;
-
-      &::before {
-        position: absolute;
-        content: "";
-        left: 50%;
-        border-left: 3px solid var(--main-color);
-        height: 10px;
-      }
-
-      span {
-        display: flex;
-      }
+    li::before {
+      top: 13px;
+      width: 4px;
+      height: 4px;
+      background: #76966c;
     }
   }
 
-  &__job {
-    left: 43.04%;
-    border-top: 3px solid var(--main-color);
-    right: 4.2%;
-    top: 0;
+  @media (max-width: 600px) {
+    &__header {
+      padding-bottom: 24px;
+      margin-bottom: 32px;
+    }
+    &__chronology {
+      font-size: 10px;
+    }
 
-    .relative {
-      transform: translateY(-100%);
+    &__entry {
+      grid-template-columns: minmax(0, 1fr);
+      gap: 12px;
+      padding-left: 24px;
 
       &::before {
-        bottom: 0;
+        left: 0;
       }
-
-      & > span {
-        padding-bottom: 14px;
+      &::after {
+        left: -4px;
       }
     }
-  }
 
-  &__education {
-    left: 13.9%;
-    right: 20%;
-    border-bottom: 3px solid var(--main-color);
-    bottom: 0;
-    border-right: 3px solid var(--main-color);
-
-    .relative {
-      transform: translateY(10px);
-
-      &::before {
-        top: 0;
-      }
-
-      & > span {
-        padding-top: 14px;
-      }
+    &__year {
+      grid-column: 1;
+      grid-row: 1;
+      margin-bottom: 6px;
+      font-size: 22px;
+    }
+    &__category {
+      grid-column: 1;
+      grid-row: 2;
+      padding: 0;
+    }
+    &__period {
+      grid-column: 1;
+      grid-row: 3;
+      padding: 0;
+    }
+    &__identity {
+      grid-column: 1;
+      grid-row: 4;
+      padding: 0;
+    }
+    &__identity h3 {
+      font-size: 30px;
+    }
+    &__role {
+      font-size: 22px;
+    }
+    &__points {
+      grid-column: 1;
+      grid-row: 5;
+      margin-top: 10px;
+      padding: 0;
     }
   }
 }

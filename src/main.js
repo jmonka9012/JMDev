@@ -16,7 +16,16 @@ const designLabView = import.meta.env.DEV
     ]
   : undefined;
 
+const experienceLabView = import.meta.env.DEV
+  ? import.meta.glob("./design-lab/ExperienceDesignLab.vue")[
+      "./design-lab/ExperienceDesignLab.vue"
+    ]
+  : undefined;
+
 const routes = [
+  ...(experienceLabView
+    ? [{ path: "/design-lab/experience", component: experienceLabView }]
+    : []),
   ...(designLabView
     ? [
         {
